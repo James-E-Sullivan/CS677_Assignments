@@ -39,12 +39,14 @@ actual = 100 * digits_total / len(df)
 
 predicted = np.array([10,10,10,10,10,10,10,10,10,10])
 
-'''
-max_abs_error = np.max(abs(actual - predicted)).round(2)
-median_abs_error = np.median(abs(actual - predicted)).round(2)
-mean_abs_error = np.mean(abs(actual - predicted)).round(2)
-mse = np.mean((actual - predicted)**2).round(2)  # root mean squared error
-'''
+# New Code below
+
+# Print digits with max and min values to console
+print("\nQuestion 1: What is the most frequent digit?")
+print(digits_total.idxmax())
+
+print("\nQuestion 2: What is the least frequent digit?")
+print(digits_total.idxmin())
 
 
 def max_abs_error(a, p):
@@ -87,15 +89,10 @@ def mse(a, p):
     return np.mean((a - p)**2).round(2)
 
 
-# new code below
-
 yearly_digits_total = df.groupby(['Year', 'last_digit'])['count'].sum()
 yearly_actual = 100 * yearly_digits_total / df.groupby(['Year'])['year_count'].sum()
 
 year_list = df['Year'].unique()
-
-yearly_actual['max'] = max_abs_error(yearly_actual[2014], predicted)
-
 
 error_data = {}  # to hold error calculations, by year
 
@@ -117,4 +114,5 @@ error_df = pd.DataFrame(error_data, index=['max_absolute_error',
                                            'RSME'])
 
 # print transposed (swap axes) error calculation table
+print("\nQuestion 3")
 print(error_df.T)
