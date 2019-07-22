@@ -140,11 +140,70 @@ df['Item_Type'] = df['Item'].apply(lambda x: 'Food' if len(x) > 5 else 'Drink')
 # get mean prices of each item type
 mean_item_type_prices = df.groupby(['Item_Type'])['Item_Price'].mean()
 
-print("__________Question 5__________")
+print("\n__________Question 5__________")
 print("Mean Drink Price: " + "$" + str(mean_item_type_prices['Drink'].round(2)))
 print("Mean Food Price: " + "$" + str(mean_item_type_prices['Food'].round(2)))
 
 
 # ---------- Question 6 ----------
 
+# get total revenue for each item type
+total_item_type_revenue = df.groupby(['Item_Type'])['Item_Price'].sum()
+total_drink_revenue = total_item_type_revenue['Drink']
+total_food_revenue = total_item_type_revenue['Food']
 
+if total_drink_revenue > total_food_revenue:
+    highest_type_revenue = 'Drinks'
+
+elif total_drink_revenue < total_food_revenue:
+    highest_type_revenue = 'Food'
+
+else:
+    highest_type_revenue = 'Food & Drinks'
+
+print("\n__________Question 6__________")
+print("This coffee shop makes more money selling: ", highest_type_revenue)
+
+
+# ---------- Question 7 -----------
+
+# Obtain revenue of each item, grouped by weekday
+weekday_item_revenue = df.groupby(['Weekday', 'Item'])['Item_Price'].sum()
+
+print("\n__________Question 7__________")
+print("Top 5 Selling Items for Each Weekday")
+for day in weekday_list:
+    print("\n" + day + ": ")
+
+    # get list of top 5 selling items for weekday
+    top_five_items = list((weekday_item_revenue[day].nlargest(5)).index)
+
+    for item in top_five_items:
+        print("   *", item)
+
+
+# ---------- Question 8 ----------
+
+print("\n__________Question 8__________")
+print("Bottom 5 Selling Items for Each Weekday")
+for day in weekday_list:
+    print("\n" + day + ": ")
+
+    # get list of bottom 5 selling items for weekday
+    bot_five_items = list((weekday_item_revenue[day].nsmallest(5)).index)
+
+    for item in bot_five_items:
+        print("   *", item)
+
+
+# ---------- Question 9 ----------
+
+# Count number of total transactions and total drinks sold
+total_transactions = df['Transaction'].count()
+total_drinks_sold = df.loc[df['Item_Type'] == 'Drink']['Transaction'].count()
+
+# calculate drinks per transaction
+drinks_per_transaction = total_drinks_sold / total_transactions
+
+print("\n__________Question 9__________")
+print("Drinks per transaction: ", drinks_per_transaction.round(2))
