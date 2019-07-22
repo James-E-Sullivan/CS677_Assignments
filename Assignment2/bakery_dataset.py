@@ -5,10 +5,10 @@ Date: 7/21/2019
 Homework: Bakery Dataset
 Questions # 1-9
 
-1. What is the busiest hour/weekday/period (in terms of transactions?
+1. What is the busiest hour/weekday/period (in terms of transactions)?
 2. What is the most profitable hour/weekday/period (in terms of revenue)?
 3. What is the most and least popular item?
-4. Assume 1 barrista can handle 50 transactions/day, how many barristas are
+4. Assume 1 barista can handle 50 transactions/day, how many baristas are
    needed for each day of the weeK?
 5. Divide all items into 3 groups (drinks, food, unknown). What is the avg
    price of a drink and a food item?
@@ -24,6 +24,7 @@ Questions # 1-9
 import os
 import pandas as pd
 import numpy as np
+import math
 
 input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
 input_file = os.path.join(input_dir, 'BreadBasket_DMS_output.csv')
@@ -34,38 +35,69 @@ df = pd.read_csv(input_file)
 df['Date'] = df['Year'].map(str) + "-" + df['Month'].map(str) + "-" +\
              df['Day'].map(str)
 
+# Obtain transaction count, grouped by Weekday and unique date
+unique_weekday_transactions = df.groupby(
+    ['Weekday', 'Date'])['Transaction'].count()
+
+# Obtain transaction count, grouped by hour and unique date
+unique_hour_transactions = df.groupby(['Hour', 'Date'])['Transaction'].count()
+
+# Obtain transaction count, grouped by period and unique date
+unique_period_transactions = df.groupby(
+    ['Period', 'Date'])['Transaction'].count()
+
+# Calculate the number of times each hour/weekday/period is in data
+hour_count = unique_hour_transactions.count(level='Hour')
+weekday_count = unique_weekday_transactions.count(level='Weekday')
+period_count = unique_period_transactions.count(level='Period')
+
+
 # ---------- Question 1 ----------
 
-# Obtain no. of transactions per hour/weekday/period
-transaction_hour = df.groupby(['Hour'])['Transaction'].count()
-transaction_weekday = df.groupby(['Weekday'])['Transaction'].count()
-transaction_period = df.groupby(['Period'])['Transaction'].count()
+# Obtain total no. of transactions for each hour/weekday/period
+total_transaction_hour = df.groupby(['Hour'])['Transaction'].count()
+total_transaction_weekday = df.groupby(['Weekday'])['Transaction'].count()
+total_transaction_period = df.groupby(['Period'])['Transaction'].count()
+
+# Obtain # trans. per hr/weekday/period, adjusted for unique hrs/days/periods
+adj_transaction_hour = total_transaction_hour / hour_count
+adj_transaction_weekday = total_transaction_weekday / weekday_count
+adj_transaction_period = total_transaction_period / period_count
 
 print("\n__________Question 1__________")
-print("Busiest Hour: ", transaction_hour.idxmax())
-print("Busiest Weekday: ", transaction_weekday.idxmax())
-print("Busiest Period: ", transaction_period.idxmax())
+print("Busiest Hour: ", adj_transaction_hour.idxmax())
+print("Busiest Weekday: ", adj_transaction_weekday.idxmax())
+print("Busiest Period: ", adj_transaction_period.idxmax())
 
 
 # ---------- Question 2 ----------
 
-revenue_hour = df.groupby(['Hour'])['Item_Price'].sum()
-revenue_weekday = df.groupby(['Weekday'])['Item_Price'].sum()
-revenue_period = df.groupby(['Period'])['Item_Price'].sum()
+# Obtain total revenue for each hour/weekday/period
+total_revenue_hour = df.groupby(['Hour'])['Item_Price'].sum()
+total_revenue_weekday = df.groupby(['Weekday'])['Item_Price'].sum()
+total_revenue_period = df.groupby(['Period'])['Item_Price'].sum()
+
+# Revenue for each hr/weekday/period, adjusted for unique hrs/days/periods
+adj_revenue_hour = total_revenue_hour / hour_count
+adj_revenue_weekday = total_revenue_weekday / weekday_count
+adj_revenue_period = total_revenue_period / period_count
 
 print("\n__________Question 2__________")
-print("Most Profitable Hour: ", revenue_hour.idxmax())
-print("Most Profitable Weekday: ", revenue_weekday.idxmax())
-print("Most Profitable Period: ", revenue_period.idxmax())
+print("Most Profitable Hour: ", adj_revenue_hour.idxmax())
+print("Most Profitable Weekday: ", adj_revenue_weekday.idxmax())
+print("Most Profitable Period: ", adj_revenue_period.idxmax())
 
 
 # ---------- Question 3 ----------
 
+# Obtain number of transactions per item
 item_sales = df.groupby(['Item'])['Transaction'].count()
 
+# get list of least popular items
 least_popular_value = min(item_sales)
 least_pop_items = list(item_sales[item_sales == least_popular_value].index)
 
+# get list of most popular items
 most_pop_value = max(item_sales)
 most_pop_items = list(item_sales[item_sales == most_pop_value].index)
 
@@ -81,23 +113,38 @@ for item in least_pop_items:
 
 # ---------- Question 4 ----------
 
-barrista_rate = 50
+# Number of transactions a barista can complete in one day
+barista_rate = 50
 
-#weekday_total_dict = {'Sunday': }
+# Calculate float number of required baristas per day
+float_barista = adj_transaction_weekday / barista_rate
 
-# Obtain number of weeks
-unique_dates = df.groupby(['Weekday', 'Date'])['Transaction'].count()
+# Get ceiling values of floats to find actual no. baristas required
+int_barista = float_barista.apply(lambda x: math.ceil(x))
 
-#print(unique_dates.reset_index)
+weekday_list = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                'Thursday', 'Friday', 'Saturday']
 
-print(unique_dates.count(level='Weekday'))
+print("\n__________Question 4__________")
+print("Number of Baristas required for each weekday: ")
 
-week_count = len(df['Date'].unique()) // 7
-#print(week_count)
-#print(transaction_weekday)
+for day in weekday_list:
+    print(format(day + ": ", "<11s"), format(int_barista[day], ">3d"))
 
 
-#print(week_count)
-#avg_transactions_weekday =
-#print(avg_transactions_weekday)
-#print(transaction_weekday // barrista_rate)
+# ---------- Question 5 ----------
+
+# Classify Item based on len(str) b/c I am not going to manually classify
+df['Item_Type'] = df['Item'].apply(lambda x: 'Food' if len(x) > 5 else 'Drink')
+
+# get mean prices of each item type
+mean_item_type_prices = df.groupby(['Item_Type'])['Item_Price'].mean()
+
+print("__________Question 5__________")
+print("Mean Drink Price: " + "$" + str(mean_item_type_prices['Drink'].round(2)))
+print("Mean Food Price: " + "$" + str(mean_item_type_prices['Food'].round(2)))
+
+
+# ---------- Question 6 ----------
+
+
