@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 """
+Original @author: epinsky
 Created on Mon Nov  5 14:37:29 2018
+Updated July 17, 2019
+Original script reads ticker file and constructs a Pandas DataFrame
 
-@author: epinsky
-this scripts reads your ticker file (e.g. MSFT.csv) and
-constructs a list of lines
+James Sullivan
+Class: CS677 - Summer 2
+Date: 7/20/2019
+Homework 2: Last Digit Distribution Questions 1-3
+
+1. What is the most frequent digit?
+2. What is the least frequent digit?
+3. Compute the following 4 error metrics for your data:
+    (a) max absolute error
+    (b) median absolute error
+    (c) mean absolute error
+    (d) root mean squared error (RMSE)
+
+    Summarize findings in a table (*1* row for each year) and discuss
+    your results
 """
 import os
 import math
@@ -39,7 +54,8 @@ actual = 100 * digits_total / len(df)
 
 predicted = np.array([10,10,10,10,10,10,10,10,10,10])
 
-# New Code below
+
+# ---------- James Sullivan's Code Below ----------
 
 # Print digits with max and min values to console
 print("\nQuestion 1: What is the most frequent digit?")
@@ -90,7 +106,8 @@ def mse(a, p):
 
 
 yearly_digits_total = df.groupby(['Year', 'last_digit'])['count'].sum()
-yearly_actual = 100 * yearly_digits_total / df.groupby(['Year'])['year_count'].sum()
+yearly_actual = 100 * yearly_digits_total / df.groupby(
+                ['Year'])['year_count'].sum()
 
 year_list = df['Year'].unique()
 
@@ -100,6 +117,7 @@ error_data = {}  # to hold error calculations, by year
 for year in year_list:
 
     try:
+        # calculate error values and place into a dict
         error_data[year] = [max_abs_error(yearly_actual[year], predicted),
                             median_abs_error(yearly_actual[year], predicted),
                             mean_abs_error(yearly_actual[year], predicted),

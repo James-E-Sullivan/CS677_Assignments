@@ -16,7 +16,7 @@ plot_dir = r'C:\Users\james\BU MET\CS677\Output\plots'
 
 try:   
     df = pd.read_csv(ticker_file)
-    start_date='2015-01-09'; 
+    start_date='2015-01-09'
     end_date='2015-01-20'
 
     df = df[df['Date'] >= start_date]
