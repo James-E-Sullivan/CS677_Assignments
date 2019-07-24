@@ -47,8 +47,7 @@ import os
 
 try:
     ticker='SBUX'
-    #input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
-    input_dir = r'C:\Users\james.sullivan\Documents\Personal Documents - Temporary (Delete)\BU MET\CS677\Datasets'
+    input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
     ticker_file = os.path.join(input_dir, ticker + '.csv')
     df = pd.read_csv(ticker_file)
 

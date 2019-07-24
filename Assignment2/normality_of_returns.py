@@ -24,109 +24,114 @@ ticker_file = os.path.join(input_dir, ticker + '.csv')
 
 df = pd.read_csv(ticker_file)
 df['Return'] = 100.0 * df['Return']
+pd.set_option('display.max_columns', 10)
 
+if __name__ == "__main__":
+    # ---------- Question 1 ----------
+    print('\nQuestion 1')
+    print('Days with positive returns: ', df['Return'].gt(0).sum())
+    print('Days with negative returns: ', df['Return'].lt(0).sum())
 
-# ---------- Question 1 ----------
-print('\nQuestion 1')
-print('Days with positive returns: ', df['Return'].gt(0).sum())
-print('Days with negative returns: ', df['Return'].lt(0).sum())
+    # ---------- Question 2 ----------
 
+    # Calculate mean returns for each year
+    mean_returns = df.groupby(['Year'])['Return'].mean()
 
-# ---------- Question 2 ----------
+    # Trade_Days values set to 1 to sum for annual trade day calculation
+    df['Trade_Days'] = 1
+    annual_total_trade_days = df.groupby(['Year'])['Trade_Days'].sum()
 
-# Calculate mean returns for each year
-mean_returns = df.groupby(['Year'])['Return'].mean()
+    # Create list of unique years from df
+    year_list = df['Year'].unique()
 
-# Trade_Days values set to 1 to sum for annual trade day calculation
-df['Trade_Days'] = 1
-annual_total_trade_days = df.groupby(['Year'])['Trade_Days'].sum()
+    # Create temp lists for days above/below yearly mean returns
+    above_mean_list = []
+    below_mean_list = []
 
-# Create list of unique years from df
-year_list = df['Year'].unique()
+    # Compare Return to mean returns for each year, add values to temp list
+    for year in year_list:
 
-# Create temp lists for days above/below yearly mean returns
-above_mean_list = []
-below_mean_list = []
+        try:
+            above_mean_list.extend(
+                df.loc[df['Year'] == year]['Return'].transform(
+                    lambda x: 1 if x > mean_returns[year] else 0))
 
-# Compare Return values to mean returns for each year, add values to temp list
-for year in year_list:
+            below_mean_list.extend(
+                df.loc[df['Year'] == year]['Return'].transform(
+                    lambda x: 1 if x < mean_returns[year] else 0))
+        except KeyError as df_key_error:
+            print(df_key_error)
 
-    above_mean_list.extend(
-        df.loc[df['Year'] == year]['Return'].transform(
-            lambda x: 1 if x > mean_returns[year] else 0))
+    # Add days above/below mean list into df
+    df['Above_Mean'] = above_mean_list
+    df['Below_Mean'] = below_mean_list
 
-    below_mean_list.extend(
-        df.loc[df['Year'] == year]['Return'].transform(
-            lambda x: 1 if x < mean_returns[year] else 0))
+    # Compute annual days above and below annual mean values
+    annual_days_above_mean = df.groupby('Year')['Above_Mean'].sum()
+    annual_days_below_mean = df.groupby('Year')['Below_Mean'].sum()
 
-# Add days above/below mean list into df
-df['Above_Mean'] = above_mean_list
-df['Below_Mean'] = below_mean_list
+    # Create df containing Question 2 Answers
+    df_q2 = pd.DataFrame(columns=[
+        'year', 'trading days', 'u', '% days < u', '% days > u'])
+    df_q2['year'] = year_list
+    df_q2['trading days'] = list(annual_total_trade_days)
+    df_q2['u'] = list(mean_returns)
+    df_q2['% days < u'] = list((100 * annual_days_below_mean /
+                                annual_total_trade_days).round(2))
+    df_q2['% days > u'] = list((100 * annual_days_above_mean /
+                                annual_total_trade_days).round(2))
 
-# Compute annual days above and below annual mean values
-annual_days_above_mean = df.groupby('Year')['Above_Mean'].sum()
-annual_days_below_mean = df.groupby('Year')['Below_Mean'].sum()
+    # Output answers to console
+    print("\nQuestion 2 - Table")
+    print(df_q2)
 
-# Create df containing Question 2 Answers
-df_q2 = pd.DataFrame(columns=[
-    'year', 'trading days', 'u', '% days < u', '% days > u'])
-df_q2['year'] = year_list
-df_q2['trading days'] = list(annual_total_trade_days)
-df_q2['u'] = list(mean_returns)
-df_q2['% days < u'] = list((100 * annual_days_below_mean /
-                            annual_total_trade_days).round(2))
-df_q2['% days > u'] = list((100 * annual_days_above_mean /
-                            annual_total_trade_days).round(2))
+    # ---------- Question 3 ----------
 
-# Output answers to console
-print("\nQuestion 2 - Table")
-print(df_q2)
+    # Calculate standard deviation of returns for each year
+    std_returns = df.groupby('Year')['Return'].std()
 
+    # Calculate mean +- 2 * std of returns for each year
+    mean_minus_2_std = mean_returns - (2 * std_returns)
+    mean_plus_2_std = mean_returns + (2 * std_returns)
 
-# ---------- Question 3 ----------
+    # create temp lists for days above/below mean +- 2std
+    minus_2_std_list = []
+    plus_2_std_list = []
 
-# Calculate standard deviation of returns for each year
-std_returns = df.groupby('Year')['Return'].std()
+    # Compare Return to mean (+-) 2STD for each year, add values to temp list
+    for year in year_list:
 
-# Calculate mean +- 2 * std of returns for each year
-mean_minus_2_std = mean_returns - (2 * std_returns)
-mean_plus_2_std = mean_returns + (2 * std_returns)
+        try:
+            minus_2_std_list.extend(
+                df.loc[df['Year'] == year]['Return'].transform(
+                    lambda x: 1 if x < mean_minus_2_std[year] else 0))
 
-# create temp lists for days above/below mean +- 2std
-minus_2_std_list = []
-plus_2_std_list = []
+            plus_2_std_list.extend(
+                df.loc[df['Year'] == year]['Return'].transform(
+                    lambda x: 1 if x > mean_plus_2_std[year] else 0))
+        except KeyError as df_key_error:
+            print(df_key_error)
 
-# Compare Return values to mean (+-) 2STD for each year, add values to temp list
-for year in year_list:
+    # add days above/below mean+-2std to df
+    df['Above_2STD'] = plus_2_std_list
+    df['Below_2STD'] = minus_2_std_list
 
-    minus_2_std_list.extend(
-        df.loc[df['Year'] == year]['Return'].transform(
-            lambda x: 1 if x < mean_minus_2_std[year] else 0))
+    # compute annual days above/below mean+-2std for each year
+    annual_days_above_2STD = df.groupby('Year')['Above_2STD'].sum()
+    annual_days_below_2STD = df.groupby('Year')['Below_2STD'].sum()
 
-    plus_2_std_list.extend(
-        df.loc[df['Year'] == year]['Return'].transform(
-            lambda x: 1 if x > mean_plus_2_std[year] else 0))
+    # Create df containing Question 3/4 Answers
+    df_q3 = pd.DataFrame(columns=[
+        'year', 'trading days', 'u', 'o', '% days < u-2o', '% days > u+2o'])
+    df_q3['year'] = year_list
+    df_q3['trading days'] = list(annual_total_trade_days)
+    df_q3['u'] = list(mean_returns)
+    df_q3['o'] = list(std_returns)
+    df_q3['% days < u-2o'] = list((100 * annual_days_below_2STD /
+                                   annual_total_trade_days).round(2))
+    df_q3['% days > u+2o'] = list((100 * annual_days_above_2STD /
+                                   annual_total_trade_days).round(2))
 
-# add days above/below mean+-2std to df
-df['Above_2STD'] = plus_2_std_list
-df['Below_2STD'] = minus_2_std_list
-
-# compute annual days above/below mean+-2std for each year
-annual_days_above_2STD = df.groupby('Year')['Above_2STD'].sum()
-annual_days_below_2STD = df.groupby('Year')['Below_2STD'].sum()
-
-# Create df containing Question 3/4 Answers
-df_q3 = pd.DataFrame(columns=[
-    'year', 'trading days', 'u', 'o', '% days < u-2o', '% days > u+2o'])
-df_q3['year'] = year_list
-df_q3['trading days'] = list(annual_total_trade_days)
-df_q3['u'] = list(mean_returns)
-df_q3['o'] = list(std_returns)
-df_q3['% days < u-2o'] = list((100 * annual_days_below_2STD /
-                               annual_total_trade_days).round(2))
-df_q3['% days > u+2o'] = list((100 * annual_days_above_2STD /
-                               annual_total_trade_days).round(2))
-
-# Output answers to console
-print("\nQuestion 3&4 - Table")
-print(df_q3)
+    # Output answers to console
+    print("\nQuestion 3&4 - Table")
+    print(df_q3)

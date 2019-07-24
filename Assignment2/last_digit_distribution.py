@@ -26,13 +26,18 @@ import math
 import numpy as np
 import pandas as pd
 
-#
-ticker='SBUX'
-input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
-ticker_file = os.path.join(input_dir, ticker + '.csv')
-output_file = os.path.join(input_dir, ticker + '_updated.csv')
+try:
+    ticker='SBUX'
+    input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+    ticker_file = os.path.join(input_dir, ticker + '.csv')
+    output_file = os.path.join(input_dir, ticker + '_updated.csv')
 
-df = pd.read_csv(ticker_file)   # DataFrame of SBUX ticker
+    df = pd.read_csv(ticker_file)   # DataFrame of SBUX ticker
+    pd.set_option('display.max_columns', 10)
+
+except Exception as e:
+    print(e)
+    print('Could not read stock dataset')
 
 mean_return = 100.0 * df['Return'].mean()   # mean of values in 'Return' column
 std_return = 100.0 * df['Return'].std()     # std of values in 'Return' column
@@ -56,13 +61,6 @@ predicted = np.array([10,10,10,10,10,10,10,10,10,10])
 
 
 # ---------- James Sullivan's Code Below ----------
-
-# Print digits with max and min values to console
-print("\nQuestion 1: What is the most frequent digit?")
-print(digits_total.idxmax())
-
-print("\nQuestion 2: What is the least frequent digit?")
-print(digits_total.idxmin())
 
 
 def max_abs_error(a, p):
@@ -105,32 +103,47 @@ def mse(a, p):
     return np.mean((a - p)**2).round(2)
 
 
-yearly_digits_total = df.groupby(['Year', 'last_digit'])['count'].sum()
-yearly_actual = 100 * yearly_digits_total / df.groupby(
-                ['Year'])['year_count'].sum()
+if __name__ == "__main__":
+    # Print digits with max and min values to console
+    print("\nQuestion 1: What is the most frequent digit?")
+    print(digits_total.idxmax())
 
-year_list = df['Year'].unique()
+    print("\nQuestion 2: What is the least frequent digit?")
+    print(digits_total.idxmin())
 
-error_data = {}  # to hold error calculations, by year
-
-
-for year in year_list:
 
     try:
-        # calculate error values and place into a dict
-        error_data[year] = [max_abs_error(yearly_actual[year], predicted),
-                            median_abs_error(yearly_actual[year], predicted),
-                            mean_abs_error(yearly_actual[year], predicted),
-                            mse(yearly_actual[year], predicted)]
-    except KeyError as e:
-        print(e)
+        # get total number of digits for each year
+        yearly_digits_total = df.groupby(['Year', 'last_digit'])['count'].sum()
+        yearly_actual = 100 * yearly_digits_total / df.groupby(
+                        ['Year'])['year_count'].sum()
 
-# create error calculation df
-error_df = pd.DataFrame(error_data, index=['max_absolute_error',
-                                           'median_absolute_error',
-                                           'mean_absolute_error',
-                                           'RSME'])
+        year_list = df['Year'].unique()  # list of unique years
 
-# print transposed (swap axes) error calculation table
-print("\nQuestion 3")
-print(error_df.T)
+        error_data = {}  # to hold error calculations, by year
+
+        for year in year_list:
+            try:
+                # calculate error values and place into a dict
+                error_data[year] = [max_abs_error(yearly_actual[year],
+                                                  predicted),
+                                    median_abs_error(yearly_actual[year],
+                                                     predicted),
+                                    mean_abs_error(yearly_actual[year],
+                                                   predicted),
+                                    mse(yearly_actual[year], predicted)]
+            except KeyError as e:
+                print(e)
+
+        # create error calculation df
+        error_df = pd.DataFrame(error_data, index=['max_absolute_error',
+                                                   'median_absolute_error',
+                                                   'mean_absolute_error',
+                                                   'RSME'])
+
+        # print transposed (swap axes) error calculation table
+        print("\nQuestion 3")
+        print(error_df.T)
+
+    except KeyError as ke:
+        print(ke)
