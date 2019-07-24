@@ -122,7 +122,16 @@ def color_strategy(data):
     shares = 0.0
     current_color = 'Red'   # initialize color to red
 
-    week_data = data[['Year_Week', 'Color', 'Week_Start', 'Week_End']].groupby('Year_Week').max().reset_index()
+    week_data = data[['Year_Week', 'Color', 'Week_Start', 'Open']].groupby('Year_Week').first().reset_index()
+
+    week_end_data = data[['Year_Week', 'Week_End', 'Adj Close']].groupby('Year_Week').last().reset_index()
+
+
+
+    week_data = pd.merge(week_data, week_end_data, on='Year_Week')
+
+
+
 
     #print(week_data.iloc[0]['Color'])
 
@@ -134,32 +143,32 @@ def color_strategy(data):
     for i in range(len(week_data)-1):
 
         next_color = week_data.iloc[i+1]['Color']
-        current_week_start = week_data.iloc[i]['Week_End']
-        current_week_end = week_data.iloc[i]['Week_Start']
+        open_price = week_data.iloc[i]['Open']
+        adj_close_price = week_data.iloc[i]['Adj Close']
 
         if next_color == 'Red':
 
             if current_color is 'Green':
-                sell_price = data.loc[data['Date'] == current_week_end].index(0)
-                #sell_price = 0
+                sell_price = adj_close_price
                 funds = shares * sell_price
                 shares = 0.00
 
         elif next_color == 'Green':
 
             if current_color is 'Red':
-                buy_price = data.loc[data['Date'] == current_week_start].index(0)
-                #buy_price = 1
+                buy_price = open_price
                 shares = funds / buy_price
                 funds = 0.00
 
                 #print(type(buy_price))
 
+        """
         print('\n ---------- Iteration', i, '----------')
         print(current_color)
         print(next_color)
         print("Funds: ", funds)
         print("Shares: ", shares)
+        """
 
 
         current_color = next_color
@@ -167,7 +176,7 @@ def color_strategy(data):
 
 
     if shares > 0:
-        final_value = data.iloc[len(data)-1]['Adj Close'] * shares
+        final_value = week_data.iloc[len(week_data)-1]['Adj Close'] * shares
 
     else:
         final_value = funds
