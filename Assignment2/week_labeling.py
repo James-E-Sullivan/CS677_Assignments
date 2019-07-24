@@ -48,12 +48,13 @@ import numpy as np
 import os
 
 ticker='SBUX'
-input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+#input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+input_dir = r'C:\Users\james.sullivan\Documents\Personal Documents - Temporary (Delete)\BU MET\CS677\Datasets'
 ticker_file = os.path.join(input_dir, ticker + '.csv')
 
 df = pd.read_csv(ticker_file)
 
-#pd.set_option('display.max_columns', 50)
+pd.set_option('display.max_columns', 7)
 
 #df['Return'] = 100.0 * df['Return']     # Percent return
 
@@ -102,10 +103,6 @@ df['Annual_Return_%'] = df['Annual_Return'].apply(lambda x: x * 100)
 df['Color'] = df['Annual_Return_%'].apply(lambda x: 'Green' if x >= 10 else 'Red')
 
 
-
-
-
-
 def buy_and_hold(data):
 
     initial_funds = 100.00  # funds start at $100.00
@@ -113,7 +110,6 @@ def buy_and_hold(data):
     final_price = data.iloc[len(data) - 1]['Adj Close']
     final_funds = final_price * (initial_funds / initial_price)  # price * shares
     return final_funds
-
 
 
 def color_strategy(data):
@@ -126,14 +122,7 @@ def color_strategy(data):
 
     week_end_data = data[['Year_Week', 'Week_End', 'Adj Close']].groupby('Year_Week').last().reset_index()
 
-
-
     week_data = pd.merge(week_data, week_end_data, on='Year_Week')
-
-
-
-
-    #print(week_data.iloc[0]['Color'])
 
     if week_data.iloc[0]['Color'] == 'Green':
         shares = funds / data[0]['Open']
@@ -160,23 +149,22 @@ def color_strategy(data):
                 shares = funds / buy_price
                 funds = 0.00
 
-                #print(type(buy_price))
-
         """
         print('\n ---------- Iteration', i, '----------')
-        print(current_color)
-        print(next_color)
-        print("Funds: ", funds)
-        print("Shares: ", shares)
+        print("Current Color: ", current_color)
+        print("Next Color: ", next_color)
+        print("Open Price: ", open_price)
+        print("Close Price: ", adj_close_price)
+        print("Funds After: ", funds)
+        print("Shares After: ", shares)
         """
-
 
         current_color = next_color
 
-
-
     if shares > 0:
         final_value = week_data.iloc[len(week_data)-1]['Adj Close'] * shares
+
+        print("Final value: ", final_value)
 
     else:
         final_value = funds
@@ -184,30 +172,6 @@ def color_strategy(data):
     return final_value
 
 
-
-
-
-#print(buy_and_hold(df[df['Year'] == 2015]))
-print(buy_and_hold(df))
-print(color_strategy(df))
-
-
-
-"""
-print(df_test.head())
-print(df_test_2.head())
-print(week_bounds_df)
-print(df.head())
-
-row = next(df.iterrows())
-print(row)
-
-print(df[['Year_Week', 'Color', 'Week_Start', 'Week_End']].groupby('Year_Week').max().reset_index())
-
-
-#print(df.loc[0]['Open'])
-"""
-
-
-
+print("Buy & Hold for 2015: ", buy_and_hold(df[df['Year'] == 2015]).round(2))
+print("Color Strategy for 2015: ", color_strategy(df[df['Year'] == 2015]).round(2))
 
