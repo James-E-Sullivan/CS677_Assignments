@@ -45,16 +45,14 @@ import pandas as pd
 import numpy as np
 import os
 
-try:
-    ticker='SBUX'
-    input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
-    ticker_file = os.path.join(input_dir, ticker + '.csv')
-    df = pd.read_csv(ticker_file)
 
-except Exception as e:
-    print(e)
-    print("Could not read stock dataset")
+ticker='SBUX'
+input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+ticker_file = os.path.join(input_dir, ticker + '.csv')
+df = pd.read_csv(ticker_file)
 
+
+""""
 try:
     # create new df with cumulative returns for each week
     week_return_df = df[['Year_Week', 'Return']].groupby(
@@ -89,6 +87,50 @@ try:
 except KeyError as e:
     print(e)
     print("Key value not found")
+"""
+
+
+def assign_labels(data):
+
+    week_return_data = data[['Year_Week', 'Return']].groupby('Year_Week').sum().reset_index()
+
+    week_return_data.rename(columns={'Return': 'Return_Week'}, inplace=True)
+    data = pd.merge(data, week_return_data, on='Year_Week')
+
+    # create new df with the length of each week (by days)
+    week_size_data = data[['Year_Week', 'Return']].groupby(
+        'Year_Week').count().reset_index()
+
+    # rename 'Return' to 'Week_Size' and merge back into original df
+    week_size_data.rename(columns={'Return': 'Week_Size'}, inplace=True)
+    data = pd.merge(data, week_size_data, on='Year_Week')
+
+    # create new df w/ the date of the first day of each week
+    week_start_data = data[['Year_Week', 'Date']].groupby(
+        'Year_Week').min().reset_index()
+    week_start_data.rename(columns={'Date': 'Week_Start'}, inplace=True)
+
+    # create new df w/ the date of the last day of each week
+    week_end_data = data[['Year_Week', 'Date']].groupby(
+        'Year_Week').max().reset_index()
+    week_end_data.rename(columns={'Date': 'Week_End'}, inplace=True)
+
+    # merge week_start_df and week_end_df, then merge new df into original df
+    week_bounds_data = pd.merge(week_start_data, week_end_data, on='Year_Week')
+    data = pd.merge(data, week_bounds_data, on='Year_Week')
+
+    # calculate annualized return for each week
+    data['Annual_Return'] = data[['Return_Week', 'Week_Size']].apply(
+        annualized_return, axis=1)
+
+    # calculate percent annualized return for each week
+    data['Annual_Return_%'] = data['Annual_Return'].apply(lambda x: x * 100)
+
+    # assign color based on percent annualized return value
+    data['Color'] = data['Annual_Return_%'].apply(
+        lambda x: 'Green' if x >= 10 else 'Red')
+
+    return data
 
 
 def annualized_return(vec):
@@ -110,7 +152,7 @@ def annualized_return(vec):
         print(ke)
         print('annualized_return() could not find keys')
 
-
+""""
 try:
     # calculate annualized return for each week
     df['Annual_Return'] = df[['Return_Week', 'Week_Size']].apply(
@@ -125,6 +167,7 @@ try:
 
 except ValueError as color_exception:
     print(color_exception)
+"""
 
 
 def buy_and_hold(data):
@@ -212,6 +255,9 @@ def color_strategy(data):
 
 
 if __name__ == "__main__":
+
+    df = assign_labels(df)
+    print(df)
 
     print("\nQuestion 1")
     # Buy and hold strategy applied to 2015
