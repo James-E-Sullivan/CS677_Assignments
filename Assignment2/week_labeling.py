@@ -194,64 +194,67 @@ def color_strategy(data):
     shares = 0.0    # shares start at $0.00
     current_color = 'Red'   # initialize color to red
 
-    try:
-        # get week start date and open value on that date
-        week_data = data[['Year_Week', 'Color', 'Week_Start', 'Open']].groupby(
-            'Year_Week').first().reset_index()
 
-        # get week end date and adjusted close value on that date
-        week_end_data = data[['Year_Week', 'Week_End', 'Adj Close']].groupby(
-            'Year_Week').last().reset_index()
+    # get week start date and open value on that date
+    week_data = data[['Year_Week', 'Color', 'Week_Start', 'Open']].groupby(
+        'Year_Week').first().reset_index()
 
-        # merge DataFrames w/ week_start and week_end info
-        week_data = pd.merge(week_data, week_end_data, on='Year_Week')
+    # get week end date and adjusted close value on that date
+    week_end_data = data[['Year_Week', 'Week_End', 'Adj Close']].groupby(
+        'Year_Week').last().reset_index()
 
-        # purchase funds on first day of first week, if 1st week color is green
-        if week_data.iloc[0]['Color'] == 'Green':
-            shares = funds / data[0]['Open']
-            funds = 0.00
-            current_color = 'Green'
+    # merge DataFrames w/ week_start and week_end info
+    week_data = pd.merge(week_data, week_end_data, on='Year_Week')
 
-        # iterate through weeks
-        for i in range(len(week_data)-1):
+    # purchase funds on first day of first week, if 1st week color is green
+    if week_data.iloc[0]['Color'] == 'Green':
+        shares = funds / data.iloc[0]['Open']
+        funds = 0.00
+        current_color = 'Green'
 
-            next_color = week_data.iloc[i+1]['Color']      # next week's color
-            open_price = week_data.iloc[i]['Open']              # open price
-            adj_close_price = week_data.iloc[i]['Adj Close']    # close price
 
-            if next_color == 'Red':
+    # iterate through weeks
+    for i in range(len(week_data)-1):
 
-                # want to sell all stocks if current week is Green
-                if current_color is 'Green':
-                    sell_price = adj_close_price
-                    funds = shares * sell_price
-                    shares = 0.00
+        next_color = week_data.iloc[i+1]['Color']      # next week's color
+        open_price = week_data.iloc[i]['Open']              # open price
+        adj_close_price = week_data.iloc[i]['Adj Close']    # close price
 
-            elif next_color == 'Green':
+        # if there is no price, we should be at last row
+        if open_price is None or adj_close_price is None:
+            break
 
-                # want to buy max amt of stocks if current week is Red
-                if current_color is 'Red':
-                    buy_price = open_price
-                    shares = funds / buy_price
-                    funds = 0.00
+        elif next_color == 'Red':
 
-            current_color = next_color  # set color to next week's color
+            # want to sell all stocks if current week is Green
+            if current_color is 'Green':
+                sell_price = adj_close_price
+                funds = shares * sell_price
+                shares = 0.00
 
-        # If shares haven't been converted to funds by the end of time period
-        if shares > 0:
+        elif next_color == 'Green':
 
-            # convert shares to funds at final adjusted closing price
-            final_value = week_data.iloc[len(week_data)-1]['Adj Close'] * shares
+            # want to buy max amt of stocks if current week is Red
+            if current_color is 'Red':
+                buy_price = open_price
+                shares = funds / buy_price
+                funds = 0.00
 
-        # all shares already sold
-        else:
-            final_value = funds
+        current_color = next_color  # set color to next week's color
 
-        return final_value
+    # If shares haven't been converted to funds by the end of time period
+    if shares > 0:
 
-    except KeyError as color_strat_error:
-        print(color_strat_error)
-        print('Key not found while performing color strategy')
+        # convert shares to funds at final adjusted closing price
+        final_value = week_data.iloc[len(week_data)-1]['Adj Close'] * shares
+
+    # all shares already sold
+    else:
+        final_value = funds
+
+    return final_value
+
+
 
 
 if __name__ == "__main__":
