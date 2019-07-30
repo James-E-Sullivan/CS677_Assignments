@@ -129,7 +129,7 @@ df_2018['Predicted_Color'] = df_2018['Logistic_Y'].apply(lambda c: 'Green' if c 
 # Smaller df with predicted 2018 values, grouped by 'Year_Week'
 pred_2018 = df_2018[['Year_Week', 'Logistic_Y', 'Color', 'Predicted_Color']].groupby(['Year_Week']).max()
 
-pred_2018['Accuracy'] = pred_2018[['Color', 'Predicted_Color']].apply(get_acc, axis=1)
+pred_2018['Accuracy'] = pred_2018[['Color', 'Predicted_Color']].apply(fs.get_acc, axis=1)
 
 #print(predicted_2018)
 
@@ -147,10 +147,10 @@ pred_2018['TN'] = pred_2018[['Color', 'Predicted_Color']].apply(tn, axis=1)
 pred_2018['FN'] = pred_2018[['Color', 'Predicted_Color']].apply(fn, axis=1)
 """
 
-tp_sum = pred_2018[['Color', 'Predicted_Color']].apply(tp, axis=1).sum()
-fp_sum = pred_2018[['Color', 'Predicted_Color']].apply(fp, axis=1).sum()
-tn_sum = pred_2018[['Color', 'Predicted_Color']].apply(tn, axis=1).sum()
-fn_sum = pred_2018[['Color', 'Predicted_Color']].apply(fn, axis=1).sum()
+tp_sum = pred_2018[['Color', 'Predicted_Color']].apply(fs.tp, axis=1).sum()
+fp_sum = pred_2018[['Color', 'Predicted_Color']].apply(fs.fp, axis=1).sum()
+tn_sum = pred_2018[['Color', 'Predicted_Color']].apply(fs.tn, axis=1).sum()
+fn_sum = pred_2018[['Color', 'Predicted_Color']].apply(fs.fn, axis=1).sum()
 
 print(pred_2018)
 

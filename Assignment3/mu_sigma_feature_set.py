@@ -37,3 +37,41 @@ def get_feature_set(df1):
     return df3
 
 
+def get_acc(vector):
+
+    if vector[0] == vector[1]:
+        return 1
+    else:
+        return 0
+
+
+def tp(vector):
+
+    if vector[0] is 'Green' and vector[1] is 'Green':
+        return 1
+    else:
+        return 0
+
+
+def fp(vector):
+
+    if vector[0] is 'Red' and vector[1] is 'Green':
+        return 1
+    else:
+        return 0
+
+
+def tn(vector):
+
+    if vector[0] is 'Red' and vector[1] is 'Red':
+        return 1
+    else:
+        return 0
+
+
+def fn(vector):
+
+    if vector[0] is 'Green' and vector[1] is 'Red':
+        return 1
+    else:
+        return 0
