@@ -1,3 +1,28 @@
+"""
+James Sullivan
+Class: CS677 - Summer 2
+Date: 7/31/2019
+Homework: kNN Question# 1-5
+
+1. Take k=3, 5, 7, 9, 11. For each value of k compute the accuracy of
+   your kNN classifier on year 1 data. **On x axis you plot k and on
+   y-axis you plot accuracy** (Is this asking us to make a plot as
+   part of the question? I did not do this part). What is the optimal
+   value of k for year 1?
+
+2. Use the optimal value of k from year 1 to predict labels for year 2.
+   What is your accuracy?
+
+3. Using the optimal value for k from year 1, compute the confusion matrix
+   for year 2. What is your accuracy?
+
+4. What is the true positive rate and true negative rate for year 2?
+
+5. Implement a trading strategy based on labels from year 2 and compare
+   performance with a buy-and-hold strategy. Which strategy results in
+   a larger amount at the end of the year?
+"""
+
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier

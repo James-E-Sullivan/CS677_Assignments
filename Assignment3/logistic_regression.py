@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 from Assignment2 import week_labeling as wl
 from Assignment3 import mu_sigma_feature_set as fs

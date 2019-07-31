@@ -7,7 +7,8 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 50)
 
-input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+#input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+input_dir = r'C:\Users\james.sullivan\Documents\Personal Documents - Temporary (Delete)\BU MET\CS677\Datasets'
 filename = os.path.join(input_dir, 'tips.csv')
 df = pd.read_csv(filename)
 

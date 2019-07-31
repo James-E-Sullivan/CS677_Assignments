@@ -7,8 +7,9 @@ from Assignment2 import week_labeling as wl
 def get_ticker_df():
 
     ticker = 'SBUX'
-    input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
-    filename = os.path.join(input_dir, 'logistic_regression_gradient_descent.pdf')
+    #input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
+    input_dir = r'C:\Users\james.sullivan\Documents\Personal Documents - Temporary (Delete)\BU MET\CS677\Datasets'
+    #filename = os.path.join(input_dir, 'logistic_regression_gradient_descent.pdf')
     ticker_file = os.path.join(input_dir, ticker + '.csv')
     data = pd.read_csv(ticker_file)
 
