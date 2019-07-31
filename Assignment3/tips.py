@@ -1,3 +1,28 @@
+"""
+James Sullivan
+Class: CS677 - Summer 2
+Date: 7/31/2019
+Homework: Tips Question# 1-8
+
+1. What is the average tip (% of meal cost) for lunch and dinner?
+
+2. Average tip for each day of the week?
+
+3. When are tips the highest (day and time)?
+
+4. Compute the correlation between meal prices and tips
+
+5. Is there any relationship between tips and size of the group?
+
+6. What percentage of people are smoking?
+
+7. Assume that rows in the tips.csv file are arranged in time.
+   Are tips increasing with time in each day?
+
+8. Is there any difference in correlation between tip amounts from
+   smokers and non-smokers?
+"""
+
 import pandas as pd
 import numpy as np
 import os

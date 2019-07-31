@@ -1,3 +1,23 @@
+"""
+James Sullivan
+Class: CS677 - Summer 2
+Date: 7/31/2019
+Homework: Logistic Regression Question# 1-5
+
+1. What is the equation for logistic regression that your classifier
+   found from year 1 data?
+
+2. What is the accuracy for year 2?
+
+3. Compute the confusion matrix for year 2.
+
+4. What is the true positive rate and true negative rate for year 2?
+
+5. Implement a trading strategy based on labels from year 2 and compare
+   performance with a buy-and-hold strategy. Which strategy results in
+   a larger amount at the end of the year?
+"""
+
 import pandas as pd
 import numpy as np
 import os
