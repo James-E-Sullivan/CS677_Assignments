@@ -22,8 +22,8 @@ X = input_2017[['Mean_Return', 'Std_Return']].values
 Y = input_2017['Class'].values
 
 
-print(X)
-print(Y)
+#print(X)
+#print(Y)
 
 k_values = [3, 5, 7, 9, 11]
 
