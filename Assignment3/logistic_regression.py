@@ -75,7 +75,7 @@ def predict_y(mu, sigma, weight_list):
     return weight_list[0] + (weight_list[1] * mu) + \
         (weight_list[2] * sigma)
 
-
+"""
 def get_acc(vector):
 
     if vector[0] is vector[1]:
@@ -114,7 +114,7 @@ def fn(vector):
         return 1
     else:
         return 0
-
+"""
 
 #df_2018['Feature_Values'] = df_2018[['Mean_Return', 'Std_Return']].apply(lambda b: (b[0], b[1]))
 

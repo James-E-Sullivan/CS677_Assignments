@@ -20,6 +20,10 @@ def get_ticker_df():
 
     data['Class'] = data['Color'].apply(lambda a: 1 if a == 'Green' else 0)
     data = get_feature_set(data)
+
+    # Replace Std_Return NaN values with 0
+    data.fillna(value={'Std_Return': 0}, inplace=True)
+
     return data
 
 
