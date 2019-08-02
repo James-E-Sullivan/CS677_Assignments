@@ -47,8 +47,7 @@ import os
 
 
 ticker='SBUX'
-#input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
-input_dir = r'C:\Users\james.sullivan\Documents\Personal Documents - Temporary (Delete)\BU MET\CS677\Datasets'
+input_dir = r'C:\Users\james\BU MET\CS677\Datasets'
 ticker_file = os.path.join(input_dir, ticker + '.csv')
 df = pd.read_csv(ticker_file)
 
@@ -93,7 +92,8 @@ except KeyError as e:
 
 def assign_labels(data):
 
-    week_return_data = data[['Year_Week', 'Return']].groupby('Year_Week').sum().reset_index()
+    week_return_data = data[['Year_Week', 'Return']].groupby(
+        'Year_Week').sum().reset_index()
 
     week_return_data.rename(columns={'Return': 'Return_Week'}, inplace=True)
     data = pd.merge(data, week_return_data, on='Year_Week')
@@ -254,8 +254,6 @@ def color_strategy(data):
         final_value = funds
 
     return final_value
-
-
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from Assignment2 import week_labeling as wl
-from Assignment3 import mu_sigma_feature_set as fs
+from Assignment3 import helper_functions as hf
 
 # allow df prints to display each column
 pd.set_option('display.max_rows', 100)
@@ -35,7 +35,7 @@ pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 50)
 
 # obtain DataFrame of ticker file
-data = fs.get_ticker_df()
+data = hf.get_ticker_df()
 
 # split data into DataFrames for 2017 and 2018
 df_2017 = data[data['Year'] == 2017].reset_index()
@@ -78,7 +78,7 @@ for k in k_values:
     # create accuracy column in df (1 for correct prediction, else 0)
     accuracy_name = column_name + '_acc'
     input_2017[accuracy_name] = input_2017[['Class', column_name]].apply(
-        fs.get_acc, axis=1)
+        hf.get_acc, axis=1)
 
     # calculate accuracy for each k value (ratio not percentage)
     correct_count = input_2017[accuracy_name].sum()
@@ -127,60 +127,53 @@ k_acc_df['accuracy'] = accuracy_list
 # get max k value(s) from k_acc_df
 k_acc_max = k_acc_df.loc[k_acc_df['accuracy'] == k_acc_df['accuracy'].max()]
 
+if __name__ == '__main__':
+    print('\n__________Question 1__________')
 
-print('\n__________Question 1__________')
+    # optimal_k is set to first k value with maximum accuracy
+    optimal_k = int(k_acc_max.iloc[0][0])
+    print('Optimal k value for year 1: ', optimal_k)
 
-# optimal_k is set to first k value with maximum accuracy
-optimal_k = int(k_acc_max.iloc[0][0])
-print('Optimal k value for year 1: ', optimal_k)
+    print('\n__________Question 2__________')
+    # predict labels for year 2
+    output_2018.update(kNN_predict(output_2018, optimal_k, X, Y))
+    output_2018['Accuracy'] = output_2018[['Color', 'Pred_Color']].apply(
+        hf.get_acc, axis=1)
 
+    accuracy_2018 = output_2018['Accuracy'].sum() / output_2018[
+        'Accuracy'].count()
+    print('Accuracy for 2018: ', round(accuracy_2018, 4))
 
-print('\n__________Question 2__________')
+    print('\n__________Question 3__________')
+    # calculate true/false positive/negative values for 2018 predictions
+    tp_sum = output_2018[['Color', 'Pred_Color']].apply(hf.tp, axis=1).sum()
+    fp_sum = output_2018[['Color', 'Pred_Color']].apply(hf.fp, axis=1).sum()
+    tn_sum = output_2018[['Color', 'Pred_Color']].apply(hf.tn, axis=1).sum()
+    fn_sum = output_2018[['Color', 'Pred_Color']].apply(hf.fn, axis=1).sum()
 
-# predict labels for year 2
-output_2018.update(kNN_predict(output_2018, optimal_k, X, Y))
-output_2018['Accuracy'] = output_2018[['Color', 'Pred_Color']].apply(
-    fs.get_acc, axis=1)
+    # calculate confusion matrix
+    confusion_2018 = np.array([[tn_sum, fp_sum], [fn_sum, tp_sum]])
+    print('\nConfusion Matrix for 2018: \n', confusion_2018)
 
-accuracy_2018 = output_2018['Accuracy'].sum() / output_2018['Accuracy'].count()
-print('Accuracy for 2018: ', round(accuracy_2018, 4))
+    print('\n__________Question 4__________')
+    # calculate true positive rate and true negative rate
+    tpr = tp_sum / (tp_sum + fn_sum)
+    tnr = tn_sum / (tn_sum + fp_sum)
 
+    # print tpr and tnr values
+    print('\nTrue Positive Rate: ', round(tpr, 4))
+    print('True Negative Rate: ', round(tnr, 4))
 
-print('\n__________Question 3__________')
+    print('\n__________Question 5__________')
+    # set df_2018 color to predicted color so color_strat_knn uses pred values
+    df_2018['Color'] = output_2018['Pred_Color']
 
-# calculate true/false positive/negative values for 2018 predictions
-tp_sum = output_2018[['Color', 'Pred_Color']].apply(fs.tp, axis=1).sum()
-fp_sum = output_2018[['Color', 'Pred_Color']].apply(fs.fp, axis=1).sum()
-tn_sum = output_2018[['Color', 'Pred_Color']].apply(fs.tn, axis=1).sum()
-fn_sum = output_2018[['Color', 'Pred_Color']].apply(fs.fn, axis=1).sum()
+    color_strat_knn = round(wl.color_strategy(df_2018), 2)
+    print('Color Strategy for 2018: ' + '$' + str(color_strat_knn))
 
-# calculate confusion matrix
-confusion_2018 = np.array([[tn_sum, fp_sum], [fn_sum, tp_sum]])
-print('\nConfusion Matrix for 2018: \n', confusion_2018)
+    buy_and_hold_knn = round(wl.buy_and_hold(df_2018), 2)
+    print('Buy & Hold for 2018: ' + '$' + str(buy_and_hold_knn))
 
-
-print('\n__________Question 4__________')
-
-# calculate true positive rate and true negative rate
-tpr = tp_sum / (tp_sum + fn_sum)
-tnr = tn_sum / (tn_sum + fp_sum)
-
-# print tpr and tnr values
-print('\nTrue Positive Rate: ', round(tpr, 4))
-print('True Negative Rate: ', round(tnr, 4))
-
-
-print('\n__________Question 5__________')
-
-# set df_2018 color value to predicted color so color_strat_knn uses pred values
-df_2018['Color'] = output_2018['Pred_Color']
-
-color_strat_knn = round(wl.color_strategy(df_2018), 2)
-print('Color Strategy for 2018: ' + '$' + str(color_strat_knn))
-
-buy_and_hold_knn = round(wl.buy_and_hold(df_2018), 2)
-print('Buy & Hold for 2018: ' + '$' + str(buy_and_hold_knn))
-
-print('\nBuy and Hold Strategy results in a larger'
-      ' amount at the end of the year.')
+    print('\nBuy and Hold Strategy results in a larger'
+          ' amount at the end of the year.')
 
