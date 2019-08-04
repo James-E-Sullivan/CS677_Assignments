@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from Assignment2 import week_labeling as wl
-from Assignment3 import helper_functions as hf
+from Assignment3 import assignment3_helper_functions as hf
 
 # allow df prints to display each column
 pd.set_option('display.max_rows', 100)
