@@ -85,23 +85,6 @@ def adj_close_lin_reg(data, w):
         day = end_w
         pred_return = (slope * day) + intercept
 
-        '''
-        # for testing
-        print('\nWindow: ', x)
-        print('Values: ', y)
-        print('R^2: ', lin_reg.score(x_2, y))
-        print('Slope: ', lin_reg.coef_[0])
-        print('Intercept: ', lin_reg.intercept_)
-        print('Predicted Return for day=' + str(day) + ': ', pred_return, '\n')
-
-        # further testing
-        if start_w == 0:
-            plt.scatter(x, y)
-            plot_dir = '../plots'
-            output_file = os.path.join(plot_dir, 'lin_reg_data_test' + '.pdf')
-            plt.savefig(output_file)
-        '''
-
         pred_price_list.append(pred_return)
         r_squared_list.append(r_squared)
 
@@ -128,8 +111,6 @@ def pred_multiple_w(data, w_values):
         new_df = adj_close_lin_reg(data, w_value)
         data.merge(new_df)
 
-    #data.drop(columns='next_pred_price', inplace=True)
-
     return data
 
 
@@ -149,8 +130,13 @@ def get_optimal_w(data, w_values):
     mean_profits = find_mean_profit(data_with_profit, w_values)
 
     plt.scatter(w_values, mean_profits)
+    plt.grid(True)
+    plt.title('mean profits for each w value')
+    plt.xlabel('w')
+    plt.ylabel('mean profits')
     plot_dir = '../plots'
     output_file = os.path.join(plot_dir, 'w_mean_profit' + '.pdf')
+    #plt.show()
     plt.savefig(output_file)
 
     mean_profit_df = pd.DataFrame(columns={'w_value', 'mean_profit'})
@@ -165,6 +151,20 @@ def get_optimal_w(data, w_values):
     return optimal_w
 
 
+def short_or_long_trx(vector):
+    if vector[0] is not None and vector[1] == 1:
+        return 1
+    else:
+        return 0
+
+
+def short_or_long_profit(vector):
+    if vector[1] == 1:
+        return vector[0]
+    else:
+        return 0
+
+
 df_2017 = df[df.Year == 2017].reset_index(drop=True)
 df_2018 = df[df.Year == 2018].reset_index(drop=True)
 
@@ -174,13 +174,7 @@ start_day = w_maximum + 1
 w_list = create_w_list(w_minimum, w_maximum)
 
 
-
-
 if __name__ == '__main__':
-    #print(adj_close_lin_reg(df_2017, 5))
-    #output_data = pred_multiple_w(df_2017, w_list)
-    #print(output_data)
-    #print(find_mean_profit(output_data, w_list))
 
     # ---------- Question 1 ----------
     optimal_w_value = get_optimal_w(df_2017, w_list)
@@ -195,7 +189,99 @@ if __name__ == '__main__':
     print('2018 Mean r^2 value: ', round(mean_r_squared, 6))
     print('r^2 value indicates that linear regression does'
           ' not perfectly predict price movements.')
-    #print(df_2018_lin_reg)
 
+    # ---------- Question 3 ----------
 
+    profit_col_name = 'w_' + str(10) + '_profit'
 
+    # column to track short transactions
+    df_2018_lin_reg['short_trx'] = df_2018_lin_reg[[
+        profit_col_name, 'short_count']].apply(short_or_long_trx, axis=1)
+
+    # column to track long transactions
+    df_2018_lin_reg['long_trx'] = df_2018_lin_reg[[
+        profit_col_name, 'long_count']].apply(short_or_long_trx, axis=1)
+
+    short_transactions = df_2018_lin_reg.short_trx.sum()
+    long_transactions = df_2018_lin_reg.long_trx.sum()
+
+    print('\n__________Question 3__________')
+    print('Number of long position transactions: ', long_transactions)
+    print('Number of short position transactions: ', short_transactions)
+
+    # ---------- Question 4 ----------
+
+    # column to track short profits
+    df_2018_lin_reg['short_profit'] = df_2018_lin_reg[[
+        profit_col_name, 'short_trx']].apply(short_or_long_profit, axis=1)
+
+    # column to track long profits
+    df_2018_lin_reg['long_profit'] = df_2018_lin_reg[[
+        profit_col_name, 'long_trx']].apply(short_or_long_profit, axis=1)
+
+    short_profit_avg = df_2018_lin_reg.short_profit.sum() / short_transactions
+    long_profit_avg = df_2018_lin_reg.long_profit.sum() / long_transactions
+
+    print('\n__________Question 4__________')
+    print('Average profit/loss per long position trade: ', round(long_profit_avg, 6))
+    print('Average profit/loss per short position trade: ', round(short_profit_avg, 6))
+
+    # ---------- Question 5 ----------
+
+    short_days = df_2018_lin_reg.short_count.sum()
+    long_days = df_2018_lin_reg.long_count.sum()
+
+    short_avg_days = short_days / short_transactions
+    long_avg_days = long_days / long_transactions
+
+    print('\n__________Question 5__________')
+    print('Average number of days for long position: ', round(long_avg_days, 6))
+    print('Average number of days for short position: ', round(short_avg_days, 6))
+
+    # ---------- Question 6 ----------
+    # reset df_2017
+    df_2017 = df[df.Year == 2017].reset_index(drop=True)
+    df_2017_lin_reg = adj_close_lin_reg(df_2017, optimal_w_value)
+
+    # calculate mean r^2 value for 2017
+    mean_r_square_2017 = df_2017_lin_reg.r_squared.mean()
+
+    # column to track short transactions
+    df_2017_lin_reg['short_trx'] = df_2017_lin_reg[[
+        profit_col_name, 'short_count']].apply(short_or_long_trx, axis=1)
+
+    # column to track long transactions
+    df_2017_lin_reg['long_trx'] = df_2017_lin_reg[[
+        profit_col_name, 'long_count']].apply(short_or_long_trx, axis=1)
+
+    # calculate number of short and long transactions for 2017
+    short_trx_2017 = df_2017_lin_reg.short_trx.sum()
+    long_trx_2017 = df_2017_lin_reg.long_trx.sum()
+
+    # column to track short profits
+    df_2017_lin_reg['short_profit'] = df_2017_lin_reg[[
+        profit_col_name, 'short_trx']].apply(short_or_long_profit, axis=1)
+
+    # column to track long profits
+    df_2017_lin_reg['long_profit'] = df_2017_lin_reg[[
+        profit_col_name, 'long_trx']].apply(short_or_long_profit, axis=1)
+
+    short_profit_avg_2017 = df_2017_lin_reg.short_profit.sum() / short_trx_2017
+    long_profit_avg_2017 = df_2017_lin_reg.long_profit.sum() / long_trx_2017
+
+    short_days_2017 = df_2017_lin_reg.short_count.sum()
+    long_days_2017 = df_2017_lin_reg.long_count.sum()
+
+    short_avg_days_2017 = short_days_2017 / short_trx_2017
+    long_avg_days_2017 = long_days_2017 / long_trx_2017
+
+    # output same answers as 2018, without separating into multiple questions
+    print('\n__________Question 6__________')
+    print('Results for 2017')
+    print('Average r^2 value: ', round(mean_r_square_2017, 6))
+    print('Number of long position transactions: ', long_trx_2017)
+    print('Number of short position transactions: ', short_trx_2017)
+    print('Avg profit/loss per long position trade: ', round(long_profit_avg_2017, 6))
+    print('Avg profit/loss per short position trade: ', round(short_profit_avg_2017, 6))
+    print('Avg no. days for long position: ', round(long_avg_days_2017, 6))
+    print('Avg no. days for short position: ', round(short_avg_days_2017, 6))
