@@ -180,7 +180,6 @@ def get_optimal_w(data, w_values):
     plt.ylabel('mean profits')
     plot_dir = '../plots'
     output_file = os.path.join(plot_dir, 'w_mean_profit' + '.pdf')
-    #plt.show()
     plt.savefig(output_file)
 
     mean_profit_df = pd.DataFrame(columns={'w_value', 'mean_profit'})
@@ -242,8 +241,6 @@ if __name__ == '__main__':
 
     print('\n__________Question 2__________')
     print('2018 Mean r^2 value: ', round(mean_r_squared, 6))
-    print('r^2 value indicates that linear regression does'
-          ' not perfectly predict price movements.')
 
     # ---------- Question 3 ----------
 
@@ -280,8 +277,8 @@ if __name__ == '__main__':
     long_profit_avg = df_2018_lin_reg.long_profit.sum() / long_transactions
 
     print('\n__________Question 4__________')
-    print('Average profit/loss per long position trade: ', round(long_profit_avg, 6))
-    print('Average profit/loss per short position trade: ', round(short_profit_avg, 6))
+    print('Average profit/loss per long position trade: ', round(long_profit_avg, 4))
+    print('Average profit/loss per short position trade: ', round(short_profit_avg, 4))
 
     # ---------- Question 5 ----------
 
@@ -345,8 +342,8 @@ if __name__ == '__main__':
     print('Number of long position transactions: ', long_trx_2017)
     print('Number of short position transactions: ', short_trx_2017)
     print('Avg profit/loss per long position trade: ', round(
-        long_profit_avg_2017, 6))
+        long_profit_avg_2017, 4))
     print('Avg profit/loss per short position trade: ', round(
-        short_profit_avg_2017, 6))
+        short_profit_avg_2017, 4))
     print('Avg no. days for long position: ', round(long_avg_days_2017, 6))
     print('Avg no. days for short position: ', round(short_avg_days_2017, 6))
