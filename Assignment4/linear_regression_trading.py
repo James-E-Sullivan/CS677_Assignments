@@ -3,6 +3,36 @@ James Sullivan
 Class: CS677 - Summer 2
 Date: 8/3/2019
 Homework: Day Trading with Linear Regression Questions 1-6
+
+Takes a window of W days, and given the adj_close prices of P1, P2, PW, for
+days t=1, 2,..., W, we estimate the closing price PW+1 for day W+1 using
+linear regression. We choose W based on the profitability of our strategy.
+
+*** This assignment was completed while following the assignment instructions
+in its original format ***
+
+Questions
+
+1. Take W=5,6,...,30 and consider data for yr 1. For each W in specified range,
+   compute avg profit/loss per trade and plot it: (x=w values, y= profit/loss).
+   What is the optimal value W* of W?
+
+2. Use the value of W* from yr 1 and consider yr 2. For every day in yr 2,
+   take the previous W* days, compute linear regression and compute the value
+   of r^2 for yr 2. What is the avg r^2? How well does it explain price
+   movements?
+
+3. Take optimal W* from yr 1 and use it to implement the window trading
+   strategy (found in window_strategy.py). How many "long position" and
+   "short position" transactions did you have in yr 2?
+
+4. What is the avg profit/loss per "long position" trade and per "short
+   position" trade in yr 2?
+
+5. What is the avg number of days for long position and short position
+   transactions in year 2?
+
+6. Are these results very different from those in year 1 for this value of W?
 """
 
 import pandas as pd
@@ -27,7 +57,6 @@ def create_w_list(w_min, w_max, step=1):
     :return output_list: list of w values
     """
     output_list = []    # list of w values
-
     for i in range(w_min, w_max + 1):
         output_list.append(i)
         i += step
@@ -35,25 +64,16 @@ def create_w_list(w_min, w_max, step=1):
     return output_list
 
 
-def test_lin_reg():
-
-    x = np.array([1,2,3,4,6,8])
-    y = np.array([1,1,5,8,3,5])
-    x_2 = x[:, np.newaxis]
-    lin_reg = LinearRegression(fit_intercept=True)
-    lin_reg.fit(x_2, y)
-
-    print(lin_reg.score(x_2, y))
-    print(lin_reg.coef_)            # slope
-    print(lin_reg.intercept_)       # intercept
-
-    plt.scatter(x, y)
-    plot_dir = '../plots'
-    output_file = os.path.join(plot_dir, 'test1' + '.pdf')
-    plt.savefig(output_file)
-
-
 def adj_close_lin_reg(data, w):
+    """
+    Takes Stock DataFrame with daily adjusted close price values, returns
+    Stock DataFrame with profit and r^2 value columns.
+    :param data: Stock DataFrame with daily adjusted close price values.
+    :param w: The number of days (the window) used to create linear
+    regression line and predict the adj_close price of day w+1
+    :return: data DF with additional column values, including r^2
+     and actual profit values.
+    """
 
     # get Adj_Close values from data
     data_set = data.Adj_Close.values
@@ -62,43 +82,50 @@ def adj_close_lin_reg(data, w):
     end_w = copy.copy(w)    # copy to avoid resetting w's value
 
     pred_price_list = []   # list to hold predicted price
-    r_squared_list = []
+    r_squared_list = []    # list to hold r^2 values
 
     # append None for indices less than w
     for i in range(end_w):
         pred_price_list.append(None)
         r_squared_list.append(None)
 
+    # loops through data set, less the value of w
     for start_w in range((len(data_set) - w)):
 
-        x = np.arange(start_w, end_w)
-        y = data_set[start_w: end_w]
+        x = np.arange(start_w, end_w)   # w values on x-axis
+        y = data_set[start_w: end_w]    # adj_close values w/in window
 
-        x_2 = x[:, np.newaxis]
+        x_2 = x[:, np.newaxis]          # flip axis of array x
         lin_reg = LinearRegression(fit_intercept=True)
         lin_reg.fit(x_2, y)
 
-        r_squared = lin_reg.score(x_2, y)
-        slope = lin_reg.coef_[0]
-        intercept = lin_reg.intercept_
+        r_squared = lin_reg.score(x_2, y)   # r^2 value
+        slope = lin_reg.coef_[0]            # slope
+        intercept = lin_reg.intercept_      # y-intercept
 
-        day = end_w
-        pred_return = (slope * day) + intercept
+        day = end_w # the "day #" of the dataset (x value to predict y)
+        pred_return = (slope * day) + intercept  # y=mx+b
 
-        pred_price_list.append(pred_return)
-        r_squared_list.append(r_squared)
+        pred_price_list.append(pred_return)     # add predicted return to list
+        r_squared_list.append(r_squared)        # add r^2 value to list
 
         end_w += 1  # increment end of window
 
     column_name = 'w_' + str(w)             # column names
 
+    # add predicted prices
     data['next_pred_price'] = pred_price_list
 
-    data['r_squared'] = r_squared_list
+    # shift pred prices so the column = next day's predicted price
     data.next_pred_price = data.next_pred_price.shift(periods=-1)
 
-    data_p_l = ws.window_strategy(data, w)
-    data.merge(data_p_l.profit_loss)
+    # add r^2 values
+    data['r_squared'] = r_squared_list
+
+    data_p_l = ws.window_strategy(data, w)  # apply window strategy to data
+    data.merge(data_p_l.profit_loss)  # merge profit/loss values with data
+
+    # rename profit_loss column name to reflect the w_value
     data.rename(columns={'profit_loss': column_name + '_profit'}, inplace=True)
     data.drop(columns='next_pred_price', inplace=True)
 
@@ -106,7 +133,12 @@ def adj_close_lin_reg(data, w):
 
 
 def pred_multiple_w(data, w_values):
-
+    """
+    Predicts profit loss of several w values
+    :param data: Stock DataFrame with daily adj_close values
+    :param w_values: list of w values
+    :return: data with profit/loss columns for each w in w_values
+    """
     for w_value in w_values:
         new_df = adj_close_lin_reg(data, w_value)
         data.merge(new_df)
@@ -115,17 +147,29 @@ def pred_multiple_w(data, w_values):
 
 
 def find_mean_profit(data, w_values):
+    """
+    Given data with columns of profit/loss for a given set of w_values,
+    function returns a list of the mean profit values (corr. to w_values)
+    :param data: Stock DataFrame with profit/loss values
+    :param w_values: List of w_values
+    :return: Returns list of mean profits corresponding to w_values
+    """
     mean_profit_list = []
     for w in w_values:
         column_name = 'w_' + str(w) + '_profit'
         mean_profit = data[column_name].mean()
         mean_profit_list.append(mean_profit)
-
     return mean_profit_list
 
 
 def get_optimal_w(data, w_values):
-
+    """
+    Given a stock DataFrame with daily adjusted close values, and a list
+    of w values, returns the w value (optimal_w) with best profits.
+    :param data: DataFrame with daily adjusted close values
+    :param w_values: List of chosen w values
+    :return optimal_w: w value that gives best profits
+    """
     data_with_profit = pred_multiple_w(data, w_list)
     mean_profits = find_mean_profit(data_with_profit, w_values)
 
@@ -152,6 +196,11 @@ def get_optimal_w(data, w_values):
 
 
 def short_or_long_trx(vector):
+    """
+    Returns 1 if there is a transaction and a short/long position is held
+    :param vector: vector[0] is transaction and vector[1] position
+    :return: 1 or 0
+    """
     if vector[0] is not None and vector[1] == 1:
         return 1
     else:
@@ -159,21 +208,27 @@ def short_or_long_trx(vector):
 
 
 def short_or_long_profit(vector):
+    """
+    Returns profit value if the position vector is 1, else 0. Used to fill in
+    column with profit/loss values for one transaction type.
+    :param vector: vector[0] is profit, vector[1] is position type
+    :return: profit/loss or 0
+    """
     if vector[1] == 1:
         return vector[0]
     else:
         return 0
 
 
+# creates subsets of stock DataFrame for 2017 and 2018
 df_2017 = df[df.Year == 2017].reset_index(drop=True)
 df_2018 = df[df.Year == 2018].reset_index(drop=True)
 
-w_minimum = 5
-w_maximum = 30
-start_day = w_maximum + 1
-w_list = create_w_list(w_minimum, w_maximum)
+w_minimum = 5       # minimum w value
+w_maximum = 30      # maximum w value
+w_list = create_w_list(w_minimum, w_maximum)    # list of w values
 
-
+# answers assignment questions using 2017 as yr1 and 2018 as yr2
 if __name__ == '__main__':
 
     # ---------- Question 1 ----------
@@ -202,6 +257,7 @@ if __name__ == '__main__':
     df_2018_lin_reg['long_trx'] = df_2018_lin_reg[[
         profit_col_name, 'long_count']].apply(short_or_long_trx, axis=1)
 
+    # calculate number of long and short transactions
     short_transactions = df_2018_lin_reg.short_trx.sum()
     long_transactions = df_2018_lin_reg.long_trx.sum()
 
@@ -219,6 +275,7 @@ if __name__ == '__main__':
     df_2018_lin_reg['long_profit'] = df_2018_lin_reg[[
         profit_col_name, 'long_trx']].apply(short_or_long_profit, axis=1)
 
+    # calculate average short & long transaction profits
     short_profit_avg = df_2018_lin_reg.short_profit.sum() / short_transactions
     long_profit_avg = df_2018_lin_reg.long_profit.sum() / long_transactions
 
@@ -228,9 +285,11 @@ if __name__ == '__main__':
 
     # ---------- Question 5 ----------
 
+    # calculate number of days that short and long positions were held
     short_days = df_2018_lin_reg.short_count.sum()
     long_days = df_2018_lin_reg.long_count.sum()
 
+    # calc avg days per short and long transaction
     short_avg_days = short_days / short_transactions
     long_avg_days = long_days / long_transactions
 
@@ -266,22 +325,28 @@ if __name__ == '__main__':
     df_2017_lin_reg['long_profit'] = df_2017_lin_reg[[
         profit_col_name, 'long_trx']].apply(short_or_long_profit, axis=1)
 
+    # calc avg profits for long and short transactions
     short_profit_avg_2017 = df_2017_lin_reg.short_profit.sum() / short_trx_2017
     long_profit_avg_2017 = df_2017_lin_reg.long_profit.sum() / long_trx_2017
 
+    # calculate days at short and long positions
     short_days_2017 = df_2017_lin_reg.short_count.sum()
     long_days_2017 = df_2017_lin_reg.long_count.sum()
 
+    # calculate avg no. of short and long days per transaction
     short_avg_days_2017 = short_days_2017 / short_trx_2017
     long_avg_days_2017 = long_days_2017 / long_trx_2017
 
     # output same answers as 2018, without separating into multiple questions
+    # could have made function to output both yr1 and yr2 this way
     print('\n__________Question 6__________')
     print('Results for 2017')
     print('Average r^2 value: ', round(mean_r_square_2017, 6))
     print('Number of long position transactions: ', long_trx_2017)
     print('Number of short position transactions: ', short_trx_2017)
-    print('Avg profit/loss per long position trade: ', round(long_profit_avg_2017, 6))
-    print('Avg profit/loss per short position trade: ', round(short_profit_avg_2017, 6))
+    print('Avg profit/loss per long position trade: ', round(
+        long_profit_avg_2017, 6))
+    print('Avg profit/loss per short position trade: ', round(
+        short_profit_avg_2017, 6))
     print('Avg no. days for long position: ', round(long_avg_days_2017, 6))
     print('Avg no. days for short position: ', round(short_avg_days_2017, 6))

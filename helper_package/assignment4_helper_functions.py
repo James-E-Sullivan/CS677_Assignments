@@ -1,3 +1,6 @@
+"""
+General helper functions for plot and DataFrames for all assignments
+"""
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
@@ -10,7 +13,6 @@ def get_ticker_df():
     Obtains ticker data and reads it into a DataFrame
     :return data: DataFrame of stock data, unmodified
     """
-
     try:
         ticker = 'SBUX'
         input_dir = '../datasets'
@@ -25,13 +27,22 @@ def get_ticker_df():
 
 
 def fix_column_names(data):
-
+    """
+    Renames 'Adj Close' column in DataFrame to 'Adj_Close' in order to
+    reference the column with data.Adj_Close syntax
+    :param data: DataFrame with a column named 'Adj Close'
+    :return: DataFrame with 'Adj CLose' renamed 'Adj_Close'
+    """
     data.rename(columns={'Adj Close': 'Adj_Close'}, inplace=True)
     return data
 
 
 def output_plot(name):
-
+    """
+    Outputs matplotlib plot into 'plots' relative directory
+    with a given name, as a pdf.
+    :param name: the file name for the plot pdf
+    """
     plot_dir = '../plots'
     output_file = os.path.join(plot_dir, name + '.pdf')
     plt.savefig(output_file)
