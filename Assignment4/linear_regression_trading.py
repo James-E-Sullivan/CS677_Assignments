@@ -189,7 +189,8 @@ def get_optimal_w(data, w_values):
     max_profit = mean_profit_df['mean_profit'].max()
 
     # this seems like a roundabout way of getting the optimal w, but it works
-    optimal_w = mean_profit_df.loc[mean_profit_df.mean_profit == max_profit].w_value.values[0]
+    optimal_w = mean_profit_df.loc[
+        mean_profit_df.mean_profit == max_profit].w_value.values[0]
 
     return optimal_w
 
@@ -277,8 +278,10 @@ if __name__ == '__main__':
     long_profit_avg = df_2018_lin_reg.long_profit.sum() / long_transactions
 
     print('\n__________Question 4__________')
-    print('Average profit/loss per long position trade: ', round(long_profit_avg, 4))
-    print('Average profit/loss per short position trade: ', round(short_profit_avg, 4))
+    print('Average profit/loss per long position trade: ', round(
+        long_profit_avg, 4))
+    print('Average profit/loss per short position trade: ', round(
+        short_profit_avg, 4))
 
     # ---------- Question 5 ----------
 
@@ -291,8 +294,10 @@ if __name__ == '__main__':
     long_avg_days = long_days / long_transactions
 
     print('\n__________Question 5__________')
-    print('Average number of days for long position: ', round(long_avg_days, 6))
-    print('Average number of days for short position: ', round(short_avg_days, 6))
+    print('Average number of days for long position: ', round(
+        long_avg_days, 6))
+    print('Average number of days for short position: ', round(
+        short_avg_days, 6))
 
     # ---------- Question 6 ----------
     # reset df_2017
