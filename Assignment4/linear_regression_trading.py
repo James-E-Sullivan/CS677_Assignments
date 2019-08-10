@@ -41,7 +41,7 @@ import os
 import copy
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
-from helper_package import assignment4_helper_functions as hf
+from helper_package import helper_functions as hf
 import Assignment4.window_strategy as ws
 
 hf.show_more_df()   # allow df output to display more rows/columns
