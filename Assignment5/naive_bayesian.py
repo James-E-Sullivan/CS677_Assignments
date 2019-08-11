@@ -27,6 +27,9 @@ from helper_package import feature_set as fs
 from helper_package import confusion_matrix_calcs as cm
 from helper_package import assign_labels as al
 
+# raises numpy errors/warnings so they can be caught by try/except
+np.seterr(all='raise')
+
 # allow df console output to display more columns
 hf.show_more_df()
 
@@ -94,8 +97,23 @@ if __name__ == '__main__':
 
     # ---------- Question 3 ----------
     # calculate true positive and true negative rates
+
+    '''
     tpr = tp_sum / (tp_sum + fp_sum)
     tnr = tn_sum / (tn_sum + fp_sum)
+    '''
+
+    try:
+        tpr = tp_sum / (tp_sum + fp_sum)
+    except FloatingPointError:
+        # dividing by 0 will result in FloatingPointError
+        tpr = 0
+
+    try:
+        tnr = tn_sum / (tn_sum + fp_sum)
+    except FloatingPointError:
+        # dividing by 0 will result in FloatingPointError
+        tnr = 0
 
     # print tpr and tnr values
     print('\n__________Question 3__________')
