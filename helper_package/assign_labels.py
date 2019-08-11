@@ -94,7 +94,7 @@ def color_strategy(data):
     current_color = 'Red'   # initialize color to red
 
     # get week start date and open value on that date
-    week_data = data[['Year_Week', 'Color', 'Week_Start', 'Open']].groupby(
+    week_data = data[['Year_Week', 'pred_color', 'Week_Start', 'Open']].groupby(
         'Year_Week').first().reset_index()
 
     # get week end date and adjusted close value on that date
@@ -105,12 +105,12 @@ def color_strategy(data):
     week_data = pd.merge(week_data, week_end_data, on='Year_Week')
 
     # purchase funds on first day of first week, if 1st week color is green
-    if week_data.iloc[0]['Color'] == 'Green':
+    if week_data.iloc[0]['pred_color'] == 'Green':
         shares = funds / data.iloc[0]['Open']
         funds = 0.00
         current_color = 'Green'
 
-    week_data['next_label'] = week_data.Color.shift(periods=-1)
+    week_data['next_label'] = week_data.pred_color.shift(periods=-1)
 
     for i in range(len(week_data)):
         next_color = week_data.iloc[i]['next_label']        # next week's color
