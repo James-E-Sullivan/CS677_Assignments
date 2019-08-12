@@ -47,13 +47,13 @@ def nb_predict(df1, df2):
     :param df2: Prediction set (DataFrame)
     :return: df2 with predicted label (binary) and color columns
     """
-    X = df1[['Mean_Return', 'Std_Return']].values
-    Y = df1.binary_label.values
+    x = df1[['Mean_Return', 'Std_Return']].values
+    y = df1.binary_label.values
     x_2 = df2[['Mean_Return', 'Std_Return']].values
 
-    NB_classifier = GaussianNB().fit(X, Y)
+    NB_classifier = GaussianNB().fit(x, y)
     df2['pred_label'] = NB_classifier.predict(x_2)
-    df2['pred_color'] = df2.pred_label.apply(lambda x: 'Green' if x is 1 else 'Red')
+    df2['pred_color'] = df2.pred_label.apply(lambda a: 'Green' if a is 1 else 'Red')
 
     return df2
 
@@ -64,8 +64,7 @@ df_2018 = df.loc[df.Year == 2018].reset_index()
 
 if __name__ == '__main__':
 
-    pred_2018 = nb_predict(df_2017, df_2018)
-    #print(pred_2018)
+    df_2018 = nb_predict(df_2017, df_2018)
 
     # ---------- Question 1 ----------
     df_2018['acc_counter'] = df_2018[['binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
