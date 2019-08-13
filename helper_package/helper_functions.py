@@ -39,7 +39,12 @@ def fix_column_names(data):
     :param data: DataFrame with a column named 'Adj Close'
     :return: DataFrame with 'Adj CLose' renamed 'Adj_Close'
     """
-    data.rename(columns={'Adj Close': 'Adj_Close'}, inplace=True)
+    try:
+        data.rename(columns={'Adj Close': 'Adj_Close'}, inplace=True)
+
+    except KeyError as ke:
+        print(ke)
+        print("'Adj Close' is not a valid key")
     return data
 
 
@@ -49,8 +54,15 @@ def output_plot(name):
     with a given name, as a pdf.
     :param name: the file name for the plot pdf
     """
+
+    '''
     plot_dir = '../plots'
     output_file = os.path.join(plot_dir, name + '.pdf')
+    '''
+    plot_dir = os.sep.join(os.path.dirname(os.path.realpath(__file__)).
+                           split(os.sep)[:-2])
+    output_file = os.path.join(plot_dir, 'CS677_Assignments', 'plots', name + '.pdf')
+
     plt.savefig(output_file)
 
 

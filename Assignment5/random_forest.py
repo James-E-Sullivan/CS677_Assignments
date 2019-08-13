@@ -88,10 +88,6 @@ n_d_combinations = [(n, d) for n in n_list for d in d_list]
 
 if __name__ == '__main__':
 
-    print(len(n_d_combinations))
-
-    #df_2018 = random_forest_predict(df_2017, df_2018, 5, 3)
-
     nd_errors = []
 
     for nd_pair in n_d_combinations:
@@ -134,7 +130,13 @@ if __name__ == '__main__':
     ax.set_ylabel('d value')
     ax.set_zlabel('error rate')
     ax.set_title('error rates for N & d value pairs')
-    plt.show()
+    #plt.show()
+
+    plot_dir = os.sep.join(os.path.dirname(os.path.realpath(__file__)).
+                           split(os.sep)[:-2])
+    plot_name = 'nd_plot'
+    output_file = os.path.join(plot_dir, 'CS677_Assignments', 'plots', plot_name + '.pdf')
+    plt.savefig(output_file)
 
     df_nd_err = pd.DataFrame(columns={'nd_pair', 'error_rate'})
     df_nd_err.nd_pair = n_d_combinations
