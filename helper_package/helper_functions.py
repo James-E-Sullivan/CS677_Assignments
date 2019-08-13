@@ -15,8 +15,14 @@ def get_ticker_df():
     """
     try:
         ticker = 'SBUX'
+        '''
         input_dir = '../datasets'
         ticker_file = os.path.join(input_dir, ticker + '.csv')
+        '''
+        input_dir = os.sep.join(os.path.dirname(os.path.realpath(__file__)).
+                                split(os.sep)[:-2])
+        ticker_file = os.path.join(input_dir, 'CS677_Assignments', 'datasets', ticker + '.csv')
+
         data = pd.read_csv(ticker_file)
 
     except FileNotFoundError as e:
