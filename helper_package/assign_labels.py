@@ -1,8 +1,14 @@
 import pandas as pd
 import numpy as np
 
-def assign_color_labels(data):
 
+def assign_color_labels(data):
+    """
+    Assign color labels (red or green) to rows in a DataFrame (data) based on
+    annualized return values
+    :param data: Stock DataFrame
+    :return: Stock DataFrame with color labels
+    """
     week_return_data = data[['Year_Week', 'Return']].groupby(
         'Year_Week').sum().reset_index()
 
@@ -17,7 +23,6 @@ def assign_color_labels(data):
     week_size_data.rename(columns={'Return': 'Week_Size'}, inplace=True)
     data = pd.merge(data, week_size_data, on='Year_Week')
 
-
     # create new df w/ the date of the first day of each week
     week_start_data = data[['Year_Week', 'Date']].groupby(
         'Year_Week').min().reset_index()
@@ -31,7 +36,6 @@ def assign_color_labels(data):
     # merge week_start_df and week_end_df, then merge new df into original df
     week_bounds_data = pd.merge(week_start_data, week_end_data, on='Year_Week')
     data = pd.merge(data, week_bounds_data, on='Year_Week')
-
 
     # calculate annualized return for each week
     data['Annual_Return'] = data[['Return_Week', 'Week_Size']].apply(
@@ -138,37 +142,6 @@ def color_strategy(data):
                 funds = 0.00
 
         current_color = next_color  # set color to next week's color
-
-    '''
-    # iterate through weeks
-    for i in range(len(week_data)-1):
-
-        next_color = week_data.iloc[i+1]['Color']      # next week's color
-        open_price = week_data.iloc[i]['Open']              # open price
-        adj_close_price = week_data.iloc[i]['Adj_Close']    # close price
-
-        # if there is no price, we should be at last row
-        if open_price is None or adj_close_price is None:
-            break
-
-        elif next_color == 'Red':
-
-            # want to sell all stocks if current week is Green
-            if current_color is 'Green':
-                sell_price = adj_close_price
-                funds = shares * sell_price
-                shares = 0.00
-
-        elif next_color == 'Green':
-
-            # want to buy max amt of stocks if current week is Red
-            if current_color is 'Red':
-                buy_price = open_price
-                shares = funds / buy_price
-                funds = 0.00
-
-        current_color = next_color  # set color to next week's color
-    '''
 
     # If shares haven't been converted to funds by the end of time period
     if shares > 0:

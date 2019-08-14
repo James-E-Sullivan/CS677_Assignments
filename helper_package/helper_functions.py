@@ -15,10 +15,6 @@ def get_ticker_df():
     """
     try:
         ticker = 'SBUX'
-        '''
-        input_dir = '../datasets'
-        ticker_file = os.path.join(input_dir, ticker + '.csv')
-        '''
         input_dir = os.sep.join(os.path.dirname(os.path.realpath(__file__)).
                                 split(os.sep)[:-2])
         ticker_file = os.path.join(input_dir, 'CS677_Assignments', 'datasets', ticker + '.csv')
@@ -54,11 +50,6 @@ def output_plot(name):
     with a given name, as a pdf.
     :param name: the file name for the plot pdf
     """
-
-    '''
-    plot_dir = '../plots'
-    output_file = os.path.join(plot_dir, name + '.pdf')
-    '''
     plot_dir = os.sep.join(os.path.dirname(os.path.realpath(__file__)).
                            split(os.sep)[:-2])
     output_file = os.path.join(plot_dir, 'CS677_Assignments', 'plots', name + '.pdf')

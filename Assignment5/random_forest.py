@@ -103,16 +103,22 @@ if __name__ == '__main__':
 
     # obtain error rate for each N/d combo and append it to nd_errors
     for nd_pair in n_d_combinations:
+        # take mean of 10 runs for each pair
+        pair_errors = []
+        i = 0
+        while i < 10:
+            pred_2018 = random_forest_predict(
+                df_2017, df_2018, nd_pair[0], nd_pair[1])
 
-        pred_2018 = random_forest_predict(
-            df_2017, df_2018, nd_pair[0], nd_pair[1])
+            pred_2018['acc_count'] = pred_2018[[
+                'binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
 
-        pred_2018['acc_count'] = pred_2018[[
-            'binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
+            accuracy = pred_2018.acc_count.sum() / pred_2018.acc_count.count()
+            error_rate = 1 - accuracy
+            pair_errors.append(error_rate)
+            i += 1
 
-        accuracy = pred_2018.acc_count.sum() / pred_2018.acc_count.count()
-        error_rate = 1 - accuracy
-        nd_errors.append(error_rate)
+        nd_errors.append(np.array(pair_errors).mean())  # gets mean error
 
     # create figure for error rates of N&d values
     fig = plt.figure()

@@ -5,6 +5,7 @@ for calculating confusion matrices
 
 import numpy as np
 
+
 def get_acc(vector):
     """
     Returns 1's for accurate prediction, otherwise returns 0
