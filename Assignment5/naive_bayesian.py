@@ -47,31 +47,43 @@ def nb_predict(df1, df2):
     :param df2: Prediction set (DataFrame)
     :return: df2 with predicted label (binary) and color columns
     """
-    x = df1[['Mean_Return', 'Std_Return']].values
-    y = df1.binary_label.values
-    x_2 = df2[['Mean_Return', 'Std_Return']].values
 
-    NB_classifier = GaussianNB().fit(x, y)
-    df2['pred_label'] = NB_classifier.predict(x_2)
-    df2['pred_color'] = df2.pred_label.apply(lambda a: 'Green' if a is 1 else 'Red')
+    try:
+        x = df1[['Mean_Return', 'Std_Return']].values
+        y = df1.binary_label.values
+        x_2 = df2[['Mean_Return', 'Std_Return']].values
+
+        NB_classifier = GaussianNB().fit(x, y)
+        df2['pred_label'] = NB_classifier.predict(x_2)
+        df2['pred_color'] = df2.pred_label.apply(
+            lambda a: 'Green' if a is 1 else 'Red')
+
+    except KeyError as ke:
+        print(ke)
+        print('Key does not exist')
 
     return df2
 
 
+# create DataFrames for 2017 and 2018 from df
 df_2017 = df.loc[df.Year == 2017].reset_index()
 df_2018 = df.loc[df.Year == 2018].reset_index()
 
 
 if __name__ == '__main__':
 
+    # predict labels with nb_predict, update df_2018
     df_2018 = nb_predict(df_2017, df_2018)
 
     # ---------- Question 1 ----------
-    df_2018['acc_counter'] = df_2018[['binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
+
+    # get accuracy of predicted labels
+    df_2018['acc_counter'] = df_2018[
+        ['binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
     accuracy = df_2018.acc_counter.sum() / df_2018.acc_counter.count()
     percent_accuracy = accuracy * 100
     print('__________Question 1__________')
-    print('Percent accuracy for 2018: ', round(percent_accuracy, 2))
+    print('Percent accuracy for 2018: ', round(percent_accuracy, 6))
 
     # ---------- Question 2 ----------
     compare_vector = df_2018[['binary_label', 'pred_label']]
@@ -97,11 +109,6 @@ if __name__ == '__main__':
     # ---------- Question 3 ----------
     # calculate true positive and true negative rates
 
-    '''
-    tpr = tp_sum / (tp_sum + fp_sum)
-    tnr = tn_sum / (tn_sum + fp_sum)
-    '''
-
     try:
         tpr = tp_sum / (tp_sum + fp_sum)
     except FloatingPointError:
@@ -116,15 +123,26 @@ if __name__ == '__main__':
 
     # print tpr and tnr values
     print('\n__________Question 3__________')
-    print('True Positive Rate: ', round(tpr, 4))
-    print('True Negative Rate: ', round(tnr, 4))
+    print('True Positive Rate: ', tpr)
+    print('True Negative Rate: ', tnr)
 
     # ---------- Question 4 ----------
+
+    # get final funds for 2018 using color strategy and buy & hold
     color_strat_final = al.color_strategy(df_2018)
     buy_and_hold_final = al.buy_and_hold(df_2018)
     print('\n__________Question 4__________')
     print('Color Strategy Final Funds: $' + str(round(color_strat_final, 2)))
-    print('Buy & Hold Strategy Final Funds: $' + str(round(buy_and_hold_final, 2)))
+    print('Buy & Hold Strategy Final Funds: $' + str(
+        round(buy_and_hold_final, 2)))
+
+    if color_strat_final > buy_and_hold_final:
+        best_strat = 'Color Strategy'
+    else:
+        best_strat = 'Buy & Hold Strategy'
+
+    print('Which strategy results in larger amount at the end of the year?',
+          best_strat)
 
 
 
