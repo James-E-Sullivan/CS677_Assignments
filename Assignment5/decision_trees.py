@@ -80,7 +80,8 @@ if __name__ == '__main__':
     # ---------- Question 1 ----------
 
     # get accuracy for predicted labels
-    df_2018['acc_counter'] = df_2018[['binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
+    df_2018['acc_counter'] = df_2018[
+        ['binary_label', 'pred_label']].apply(cm.get_acc, axis=1)
     accuracy = df_2018.acc_counter.sum() / df_2018.acc_counter.count()
     percent_accuracy = accuracy * 100
     print('__________Question 1__________')
