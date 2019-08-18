@@ -44,34 +44,16 @@ df = al.assign_color_labels(df)  # assign color labels
 df = fs.get_feature_set(df)      # add mean and std return columns for DF
 
 
-def tree_predict(df1, df2):
-    """
-    Decision Tree classification of labels (colors)
-    :param df1: Training set (DataFrame)
-    :param df2: Prediction set (DataFrame)
-    :return: df2 with predicted label (binary) and color columns
-    """
-
-    try:
-        x = df1[['Mean_Return', 'Std_Return']].values
-        y = df1.binary_label.values
-        x_2 = df2[['Mean_Return', 'Std_Return']].values
-
-        tree_classifier = tree.DecisionTreeClassifier(criterion='entropy')
-        tree_classifier.fit(x, y)
-
-        df2['pred_label'] = tree_classifier.predict(x_2)
-        df2['pred_color'] = df2.pred_label.apply(
-            lambda z: 'Green' if z is 1 else 'Red')
-
-    except KeyError as ke:
-        print(ke)
-        print('Key does not exist')
-
-    return df2
-
-
 def linear_svm(df1, df2):
+    """
+    SVM classification (linear, gaussian, and polynomial SVM) of labels
+    (colors).
+    :param df1: Training Set (DataFrame)
+    :param df2: Prediciton Set (DataFrame)
+    :return: df2 with predicted (binary) labels for linear, gaussian, and
+    polynomial SVM classified labels. Also includes color labels using linear
+    SVM.
+    """
 
     x = df1[['Mean_Return', 'Std_Return']].values
     scaler = StandardScaler()
