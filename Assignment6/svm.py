@@ -31,18 +31,6 @@ from helper_package import feature_set as fs
 from helper_package import confusion_matrix_calcs as cm
 from helper_package import assign_labels as al
 
-# raises numpy errors/warnings so they can be caught by try/except
-np.seterr(all='raise')
-
-# allow df console output to display more columns
-hf.show_more_df()
-
-# get DataFrame of stock ticker info from csv file
-df = hf.fix_column_names(hf.get_ticker_df())
-
-df = al.assign_color_labels(df)  # assign color labels
-df = fs.get_feature_set(df)      # add mean and std return columns for DF
-
 
 def linear_svm(df1, df2):
     """
@@ -55,14 +43,24 @@ def linear_svm(df1, df2):
     SVM.
     """
 
+    # mean and std deviation of yr1 weekly returns
     x = df1[['Mean_Return', 'Std_Return']].values
+
+    # scale yr1 data
     scaler = StandardScaler()
     scaler.fit(x)
     x = scaler.transform(x)
-    y = df1.binary_label.values
-    x_2 = df2[['Mean_Return', 'Std_Return']].apply(lambda b: b * 100).values  # this doesn't work if it is not multiplied by 100...
-    #x_2 = df2[['Mean_Return', 'Std_Return']].values  # this doesn't work if it is not multiplied by 100...
 
+    y = df1.binary_label.values  # training (1st yr) label values
+
+    # mean and std deviation of yr2 weekly returns
+    x_2 = df2[['Mean_Return', 'Std_Return']].values
+
+    # scale yr2 data
+    scaler.fit(x_2)
+    x_2 = scaler.transform(x_2)
+
+    # create SVM classifiers using linear, gaussian, and polynomial kernels
     l_svm_classifier = svm.SVC(kernel='linear')
     l_svm_classifier.fit(x, y)
 
@@ -72,41 +70,58 @@ def linear_svm(df1, df2):
     p_svm_classifier = svm.SVC(kernel='poly', degree=2)
     p_svm_classifier.fit(x, y)
 
+    # add column for predicted label (0 or 1) for linear SVM
     df2['l_svm_pred'] = l_svm_classifier.predict(x_2)
-    df2['pred_color'] = df2.l_svm_pred.apply(
-        lambda a: 'Green' if a is 1 else 'Red')  # predict color for lin SVM - used in color strategy
 
+    # predict color for lin SVM - used in color strategy
+    df2['pred_color'] = df2.l_svm_pred.apply(
+        lambda a: 'Green' if a is 1 else 'Red')
+
+    # add column for only predicted label (0 or 1) for gaussian and poly SVM
     df2['g_svm_pred'] = g_svm_classifier.predict(x_2)
     df2['p_svm_pred'] = p_svm_classifier.predict(x_2)
 
-    print(l_svm_classifier.score(x, y))
-    print(g_svm_classifier.score(x, y))
-    print(p_svm_classifier.score(x, y))
-
-    return df2
-
-
-# create DataFrames for 2017 and 2018 from df
-df_2017 = df.loc[df.Year == 2017].reset_index()
-df_2018 = df.loc[df.Year == 2018].reset_index()
+    return df2  # yr2 df with added prediction columns
 
 
 if __name__ == '__main__':
 
+    # raises numpy errors/warnings so they can be caught by try/except
+    np.seterr(all='raise')
+
+    # allow df console output to display more columns
+    hf.show_more_df()
+
+    # get DataFrame of stock ticker info from csv file
+    df = hf.fix_column_names(hf.get_ticker_df())
+
+    df = al.assign_color_labels(df)  # assign color labels
+    df = fs.get_feature_set(df)  # add mean and std return columns for DF
+
+    # create DataFrames for 2017 and 2018 from df
+    df_2017 = df.loc[df.Year == 2017].reset_index()
+    df_2018 = df.loc[df.Year == 2018].reset_index()
+
     # predict labels with linear_svm()
     df_2018 = linear_svm(df_2017, df_2018)
 
-    df_2018['linear_acc'] = df_2018[['binary_label', 'l_svm_pred']].apply(cm.get_acc, axis=1)
-    df_2018['gaussian_acc'] = df_2018[['binary_label', 'g_svm_pred']].apply(cm.get_acc, axis=1)
-    df_2018['poly_acc'] = df_2018[['binary_label', 'p_svm_pred']].apply(cm.get_acc, axis=1)
+    # add column in df_2018 for accuracy of predicted SVM values (1 if accurate)
+    df_2018['linear_acc'] = df_2018[
+        ['binary_label', 'l_svm_pred']].apply(cm.get_acc, axis=1)
+    df_2018['gaussian_acc'] = df_2018[
+        ['binary_label', 'g_svm_pred']].apply(cm.get_acc, axis=1)
+    df_2018['poly_acc'] = df_2018[
+        ['binary_label', 'p_svm_pred']].apply(cm.get_acc, axis=1)
 
+    # compute accuracy for linear, gaussian, and polynomial SVM
     linear_accuracy = df_2018.linear_acc.sum() / df_2018.linear_acc.count()
-    gaussian_accuracy = df_2018.gaussian_acc.sum() / df_2018.gaussian_acc.count()
+    gaussian_accuracy = df_2018.gaussian_acc.sum() / df_2018.\
+        gaussian_acc.count()
     poly_accuracy = df_2018.poly_acc.sum() / df_2018.poly_acc.count()
 
-    # percent_accuracy = accuracy * 100
     print('\n__________Question 1__________')
-    print('Accuracy for 2018 (Linear SVM): ', round(linear_accuracy, 6))
+    print('Percent Accuracy for 2018 (Linear SVM): ',
+          round(linear_accuracy * 100, 4))
 
     # ---------- Question 2 ----------
 
@@ -122,6 +137,7 @@ if __name__ == '__main__':
     tn_sum = df_2018.tn.sum()
     fn_sum = df_2018.fn.sum()
 
+    # compute confusion matrix
     confusion_matrix_2018 = cm.confusion_matrix(tp_sum, fp_sum, tn_sum, fn_sum)
 
     print('\n__________Question 2__________')
@@ -144,7 +160,8 @@ if __name__ == '__main__':
 
     # ---------- Question 4 ----------
     print('\n__________Question 4__________')
-    print('Accuracy for 2018 (Gaussian SVM): ', round(gaussian_accuracy, 6))
+    print('Percent Accuracy for 2018 (Gaussian SVM): ',
+          round(gaussian_accuracy * 100, 4))
 
     if linear_accuracy > gaussian_accuracy:
         print('Gaussian SVM is less accurate than Linear SVM')
@@ -155,7 +172,8 @@ if __name__ == '__main__':
 
     # ---------- Question 5 ----------
     print('\n___________Question 5__________')
-    print('Accuracy for 2018 (Polynomial SVM): ', round(poly_accuracy, 6))
+    print('Percent Accuracy for 2018 (Polynomial SVM): ',
+          round(poly_accuracy * 100, 4))
 
     if linear_accuracy > poly_accuracy:
         print('Polynomial SVM is less accurate than Linear SVM')
@@ -170,10 +188,13 @@ if __name__ == '__main__':
     color_strat_final = al.color_strategy(df_2018)
     buy_and_hold_final = al.buy_and_hold(df_2018)
 
+    # output final fund values for both strategies
     print('\n__________Question 6__________')
     print('Color Strategy Final Funds: $' + str(round(color_strat_final, 2)))
-    print('Buy & Hold Strategy Final Funds: $' + str(round(buy_and_hold_final, 2)))
+    print('Buy & Hold Strategy Final Funds: $' + str(
+        round(buy_and_hold_final, 2)))
 
+    # determines best strategy based on greatest final funds
     if color_strat_final > buy_and_hold_final:
         best_strat = 'Color Strategy'
     elif color_strat_final < buy_and_hold_final:
@@ -181,6 +202,7 @@ if __name__ == '__main__':
     else:
         best_strat = 'Both strategies are equal'
 
+    # output best strategy to console
     print('Which strategy results in larger amount at the end of the year?',
           best_strat)
 
